@@ -1,7 +1,5 @@
 import os
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-
+from sqlalchemy import create_engine
 
 class dbConn(): 
     def __init__(self):
@@ -13,7 +11,4 @@ class dbConn():
 
     def get_engine(self):
         engineString = "mysql+mysqldb://"+self.sqlUser+":"+self.sqlPass+"@"+self.sqlHost+"/"+self.sqlDB
-        app = Flask(__name__)
-        app.config['SQLALCHEMY_DATABASE_URI'] = engineString
-        db = SQLAlchemy(app)
-        return db
+        return create_engine(engineString, pool_recycle=3600)
