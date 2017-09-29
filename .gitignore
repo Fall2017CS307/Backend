@@ -1,0 +1,4 @@
+environment.sh
+venv
+venv/*
+
