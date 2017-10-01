@@ -5,8 +5,8 @@ import MySQLdb
 import os
 import utils.dbConn as db
 import models
-def test_db_config():
 
+def test_db_config():
 	try:	
 		engine = db.dbConn().get_engine()
 	except:

@@ -1,5 +1,7 @@
 import os
 from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
 
 class dbConn(): 
     def __init__(self):
@@ -12,6 +14,9 @@ class dbConn():
     def get_engine(self):
         engineString = "mysql+mysqldb://"+self.sqlUser+":"+self.sqlPass+"@"+self.sqlHost+"/"+self.sqlDB
         return create_engine(engineString, pool_recycle=3600)
-
+    
+    def get_session(self, engine):
+        sess = sessionmaker(bind=engine)
+        return sess()
 
 
