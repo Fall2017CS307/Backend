@@ -12,3 +12,6 @@ class dbConn():
     def get_engine(self):
         engineString = "mysql+mysqldb://"+self.sqlUser+":"+self.sqlPass+"@"+self.sqlHost+"/"+self.sqlDB
         return create_engine(engineString, pool_recycle=3600)
+
+
+

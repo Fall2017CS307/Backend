@@ -3,8 +3,8 @@ sys.path.append("..")
 
 import MySQLdb
 import os
-import db
-
+import utils.dbConn as db
+import models
 def test_db_config():
 
 	try:	
@@ -14,7 +14,7 @@ def test_db_config():
 
 def test_table_creation():
 	engine = db.dbConn().get_engine()
-	tables = db.Base.metadata.tables.keys()
+	tables = models.Base.metadata.tables.keys()
 	try:
 		for table in tables:
 			if not engine.dialect.has_table(engine, table):
