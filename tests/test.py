@@ -1,16 +1,24 @@
+import sys
+sys.path.append("..")
+
 import MySQLdb
 import os
+import db
 
 def test_db_config():
-	sqlHost=os.environ.get('datonate_sql') or "none"
-	sqlUser=os.environ.get('datonate_sqlUser') or "none"
-	sqlPass=os.environ.get('datonate_sqlPass') or "none"
-	sqlDB=os.environ.get('datonate_sqldb') or "none"
-	
 
 	try:	
-		db = MySQLdb.connect(host=sqlHost, user=sqlUser, passwd=sqlPass, db=sqlDB)
-		db.cursor()	
+		engine = db.dbConn().get_engine()
 	except:
-		assert(False)
+		assert False, "Database environmental variable not set"
+
+def test_table_creation():
+	engine = db.dbConn().get_engine()
+	tables = db.Base.metadata.tables.keys()
+	try:
+		for table in tables:
+			if not engine.dialect.has_table(engine, table):
+				assert False, "Database tables not created"
+	except:
+		assert False, "Check previous test cases!"
 
