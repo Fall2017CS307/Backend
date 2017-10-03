@@ -61,6 +61,11 @@ class user_validate(Base):
     emailCode = Column(String(32))
     phoneCode = Column(String(32))
 
+    def __init__(self, id, emailCode,phoneCode):
+        self.id = id
+        self.emailCode = emailCode
+        self.phoneCode = phoneCode
+
 
 def setupTables():
     engine=dbConn.dbConn().get_engine() 
