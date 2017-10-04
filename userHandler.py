@@ -6,9 +6,7 @@ import models
 from utils.dbConn import dbConn
 from datetime import datetime
 from random import randint
-import sendgrid
-from sendgrid.helpers.mail import *
-from twilio.rest import Client
+from utils.notification import notification
 
 class userHandler():
     def login(self):
@@ -71,15 +69,18 @@ class userHandler():
         randNum2 = randint(1,10000)
         timeStamp = datetime.now()
         emailKey = str(randNum) + str(timeStamp.year) + str(timeStamp.month) + str(timeStamp.day) + str(timeStamp.hour) + str(timeStamp.minute) + str(timeStamp.second) + "_" + str(randNum2)
-        sg_key = os.environ.get('sendgrid_apikey') or "none"
-        sg = sendgrid.SendGridAPIClient(apikey=sg_key)
-        from_email = Email("anirudhchellani@gmail.com")
-        to_email = Email(user.email)
-        subject = "Confirm your account"
-        content = Content("text/plain", "Go to the link to verify " + "http://127.0.0.1:5000/api/verify/email/"+emailKey)
-        mail = Mail(from_email, subject, to_email, content)
-        response = sg.client.mail.send.post(request_body=mail.get())
-        print(response)
+        # sg_key = os.environ.get('sendgrid_apikey') or "none"
+        # sg = sendgrid.SendGridAPIClient(apikey=sg_key)
+        # from_email = Email("anirudhchellani@gmail.com")
+        # to_email = Email(user.email)
+        # subject = "Confirm your account"
+        contentText = "Go to the link to verify " + "http://127.0.0.1:5000/api/verify/email/"+emailKey
+        # content = Content("text/plain", "Go to the link to verify " + "http://127.0.0.1:5000/api/verify/email/"+emailKey)
+        # mail = Mail(from_email, subject, to_email, content)
+        # response = sg.client.mail.send.post(request_body=mail.get())
+
+        res = notification.sendMail(fromEmail="anirudhchellani@gmail.com",toEmail=user.email, subject="Confirm your account", contentType="text/plain", content=contentText)
+        print(res)
         ## Generate Phone key
 
     
@@ -87,18 +88,8 @@ class userHandler():
         randNum2 = randint(1,10000)
         timeStamp = datetime.now()
         phoneKey = str(randNum) + str(timeStamp.year) + str(timeStamp.month) + str(timeStamp.day) + str(timeStamp.hour) + str(timeStamp.minute) + str(timeStamp.second) + "__" + str(randNum2)
-
-
-        account_sid = os.environ.get('twillio_account_sid') or "none"
-        auth_token  = os.environ.get('twillio_auth_token') or "none"
-
-        twillio_client = Client(account_sid, auth_token)
-
-        message = twillio_client.messages.create(
-        to="+1"+user.phone, 
-        from_="+1606-268-9633",
-        body="Go to the link to verify " + "http://127.0.0.1:5000/api/verify/phone/"+phoneKey)
-
+        textContent="Go to the link to verify " + "http://127.0.0.1:5000/api/verify/phone/"+phoneKey
+        message = notification.sendText(user.phone,textContent)
         regUser = session.query(models.User).filter(models.User.email == user.email).first()
         userValidate = models.user_validate(regUser.id, emailKey, phoneKey)
         session.add(userValidate)
