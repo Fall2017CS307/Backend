@@ -12,36 +12,42 @@ from twilio.rest import Client
 
 class userHandler():
     def login(self):
-        username = request.args.get("username")
+        ret = {}
         if request.method == "GET":
-            passwprd = request.args.get("password")
+            argArray = request.args
 
         elif request.method  == "POST":
-            username = request.form.get("username")
-            password = request.form.get("password")
+            argArray = request.form
 
-        if  username and passwprd :
-            testDict = {}
-            testDict['test']="Success"
-            return jsonReturn.apiDecorate(testDict)
-
-        return "Failed"
+        user = models.User(password=argArray.get("password"), email=argArray.get("email"))
+        if  not user.email or not user.password :
+            ret['errors'] = []
+            ret['errors'].append("Invalid and/or expired key supplied")
+            return apiDecorate(ret, 400, "Invalid and/or expired key supplied")
+        
+        session = dbConn().get_session(dbConn().get_engine())
+        user = session.query(models.User).filter(models.User.email == user.email).filter(models.User.password == user.password).filter(models.User.isEmail == 1).filter(models.User.isPhone == 1).first()
+        
+        if user is None:
+            ret['errors'] = []
+            ret['errors'].append("Incorect User/password combinator or the user is not registered")
+            return apiDecorate(ret, 400, "Invalid and/or expired key supplied")        
+        
+        return apiDecorate(ret, 200, "Login Accepted")
 
     def register(self):
         ret = {}
         if request.method == "GET":
-            firstName = request.args.get("firstname")
-            lastName = request.args.get("lastname")
-            email = request.args.get("email")
-            phone = request.args.get("phone")
-            password = request.args.get("password")
-
+            argArray = request.args
         elif request.method  == "POST":
-            firstName = request.form.get("firstname")
-            lastName = request.form.get("lastname")
-            email = request.form.get("email")
-            phone = request.form.get("phone")
-            password = request.form.get("password")
+            argArray = request.form
+
+        firstName = argArray.get("firstname")
+        lastName = argArray.get("lastname")
+        email = argArray.get("email")
+        phone = argArray.get("phone")
+        password = argArray.get("password")
+
             
         user = models.User(first_name = firstName, last_name=lastName, password=password, email=email, phone=phone)
 
