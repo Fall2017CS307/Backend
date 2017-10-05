@@ -84,12 +84,12 @@ class fileHandler():
         if sent != fileSize:
             return "false"
 
-        data = models.dataset(user_id=user_id, file_name=uploadedFile.filename, resouce_id=randName)
+        data = models.dataset(user_id=user_id, file_name=uploadedFile.filename, resource_id=randName)
 
         session = dbConn().get_session(dbConn().get_engine())
         session.add(data)
         session.commit()
-        return "false"
+        return "true"
 
 @staticmethod
 def retDatasets(user_id):
