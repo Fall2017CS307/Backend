@@ -69,15 +69,7 @@ class userHandler():
         randNum2 = randint(1,10000)
         timeStamp = datetime.now()
         emailKey = str(randNum) + str(timeStamp.year) + str(timeStamp.month) + str(timeStamp.day) + str(timeStamp.hour) + str(timeStamp.minute) + str(timeStamp.second) + "_" + str(randNum2)
-        # sg_key = os.environ.get('sendgrid_apikey') or "none"
-        # sg = sendgrid.SendGridAPIClient(apikey=sg_key)
-        # from_email = Email("anirudhchellani@gmail.com")
-        # to_email = Email(user.email)
-        # subject = "Confirm your account"
         contentText = "Go to the link to verify " + "http://127.0.0.1:5000/api/verify/email/"+emailKey
-        # content = Content("text/plain", "Go to the link to verify " + "http://127.0.0.1:5000/api/verify/email/"+emailKey)
-        # mail = Mail(from_email, subject, to_email, content)
-        # response = sg.client.mail.send.post(request_body=mail.get())
 
         res = notification.sendMail(fromEmail="anirudhchellani@gmail.com",toEmail=user.email, subject="Confirm your account", contentType="text/plain", content=contentText)
         print(res)
@@ -91,6 +83,7 @@ class userHandler():
         textContent="Go to the link to verify " + "http://127.0.0.1:5000/api/verify/phone/"+phoneKey
         message = notification.sendText(user.phone,textContent)
         regUser = session.query(models.User).filter(models.User.email == user.email).first()
+
         userValidate = models.user_validate(regUser.id, emailKey, phoneKey)
         session.add(userValidate)
         session.commit()
