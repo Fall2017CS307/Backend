@@ -20,7 +20,7 @@ class fileHandler():
     DREAM_secretKey = os.environ.get('dream_secretKey') or "none"
     DREAM_Bucket = os.environ.get('dream_bucket') or "none"
     DREAM_auth = os.environ.get('dream_auth') or "none"
-    DREAM_secret = os.environ.get('dream_secret') or "none"
+    DREAM_key = os.environ.get('dream_key') or "none"
 
     @staticmethod
     def allowed_file(filename):
@@ -69,7 +69,7 @@ class fileHandler():
         fileSize = os.stat(storageLocation).st_size
         fileRead = open(storageLocation, 'r+')
 
-        botoConn = boto.connect_s3(fileHandler.DREAM_secret, fileHandler.DREAM_secretKey, host="objects-us-west-1.dream.io")        
+        botoConn = boto.connect_s3(fileHandler.DREAM_key, fileHandler.DREAM_secretKey, host="objects-us-west-1.dream.io")        
         bucket = botoConn.get_bucket(fileHandler.DREAM_Bucket, validate=True)
         k = Key(bucket)
         k.key = randName
