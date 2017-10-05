@@ -1,4 +1,6 @@
 environment.sh
 venv
 venv/*
+*.pyc
+static/uploads/*
 
