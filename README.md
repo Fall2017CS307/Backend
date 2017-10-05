@@ -20,8 +20,20 @@ This file documents the use of the api v1.0
 | lastname | **Required** | The lastname of the new user | String |
 | email | **Required** | The email of the new user | String  | 
 | password | **Required** | The password for the new user | String  | 
-| email | **Required** | The phone number for the new user | String  | 
+| phone | **Required** | The phone number for the new user | String  | 
 
+
+ 
+## Spec sheet for url : /api/login
+
+ This endpoint is called to login a user
+
+### Properties spec sheet
+
+| Parameter name | Required/Optional | use case | Accepted Value |
+| :---: | :---: | :---: | :---: |
+| email | **Required** | The email of the new user | String  | 
+| password | **Required** | The password for the new user | String  | 
 
 ### Response spec sheet
 
