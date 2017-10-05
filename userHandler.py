@@ -22,15 +22,15 @@ class userHandler():
             ret['errors'] = []
             ret['errors'].append("Invalid and/or expired key supplied")
             return apiDecorate(ret, 400, "Invalid and/or expired key supplied")
-        
+
         session = dbConn().get_session(dbConn().get_engine())
         user = session.query(models.User).filter(models.User.email == user.email).filter(models.User.password == user.password).filter(models.User.isEmail == 1).filter(models.User.isPhone == 1).first()
-        
+
         if user is None:
             ret['errors'] = []
             ret['errors'].append("Incorect User/password combinator or the user is not registered")
-            return apiDecorate(ret, 400, "Invalid and/or expired key supplied")        
-        
+            return apiDecorate(ret, 400, "Invalid and/or expired key supplied")
+
         return apiDecorate(ret, 200, "Login Accepted")
 
     def register(self):
@@ -46,7 +46,7 @@ class userHandler():
         phone = argArray.get("phone")
         password = argArray.get("password")
 
-            
+
         user = models.User(first_name = firstName, last_name=lastName, password=password, email=email, phone=phone)
 
         if len(user.errors) > 0:
@@ -60,11 +60,11 @@ class userHandler():
             ret['errors'] = []
             ret['errors'].append("User already exists")
             return apiDecorate(ret, 400, "User already exists")
-    
+
         session.add(user)
         session.commit()
-        
-        ## Generate email key 
+
+        ## Generate email key
         randNum = randint(1,10000)
         randNum2 = randint(1,10000)
         timeStamp = datetime.now()
@@ -75,7 +75,7 @@ class userHandler():
         print(res)
         ## Generate Phone key
 
-    
+
         randNum = randint(1,10000)
         randNum2 = randint(1,10000)
         timeStamp = datetime.now()
@@ -89,14 +89,14 @@ class userHandler():
         session.commit()
 
         return apiDecorate(ret, 200, "User Added")
-    
+
     def verify_email(self,key):
         ret = {}
         if key is None:
             ret['errors'] = []
             ret['errors'].append("Invalid and/or expired key supplied")
             return apiDecorate(ret, 400, "Invalid and/or expired key supplied")
-        
+
         session = dbConn().get_session(dbConn().get_engine())
         userValidate = session.query(models.user_validate).filter(models.user_validate.emailCode == key).first()
         if(userValidate is None):
@@ -123,7 +123,7 @@ class userHandler():
             ret['errors'] = []
             ret['errors'].append("Invalid and/or expired key supplied")
             return apiDecorate(ret, 400, "Invalid and/or expired key supplied")
-        
+
         session = dbConn().get_session(dbConn().get_engine())
         userValidate = session.query(models.user_validate).filter(models.user_validate.phoneCode == key).first()
         if(userValidate is None):

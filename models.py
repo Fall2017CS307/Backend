@@ -11,7 +11,7 @@ Base = declarative_base()
 
 class User(Base):
     __tablename__ = 'user'
-    
+
     id = Column(Integer, primary_key=True)
     first_name = Column(String(15), nullable=False)
     last_name = Column(String(15), nullable=False)
@@ -66,7 +66,23 @@ class user_validate(Base):
         self.emailCode = emailCode
         self.phoneCode = phoneCode
 
+class dataset(Base):
+
+    __tablename__ = 'dataset'
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer,ForeignKey("user.id"))
+    file_name = Column(String(30))
+    resource_id = Column(String(40))
+
+#resouce 40, file 30
+    def __init__(self, id, file_name, resource_id):
+        self.id = id
+        self.user_id = user_id
+        self.file_name = file_name
+        self.resource_id = resource_id
+
 
 def setupTables():
-    engine=dbConn.dbConn().get_engine() 
+    engine=dbConn.dbConn().get_engine()
     Base.metadata.create_all(engine)

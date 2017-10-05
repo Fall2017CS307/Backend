@@ -13,6 +13,7 @@ from werkzeug.utils import secure_filename
 import boto
 from boto.s3.key import Key
 from os.path import getsize
+
 class fileHandler():
     UPLOAD_FOLDER = './static/uploads'
     ALLOWED_EXTENSIONS = set(['zip'])
@@ -30,31 +31,31 @@ class fileHandler():
 
     @staticmethod
     def uploadFile(user_id):
-        
+
         ret = {}
         user = userHandler().getUser(user_id)
-        
+
         if user is None:
             ret['errors'] = []
             ret['errors'].append("User doesnt't exist/not logged in")
             return apiDecorate(ret, 400, "User doesnt't exist/not logged in")
-        
+
         if 'file' not in request.files:
             ret['errors'] = []
             ret['errors'].append("File not supplied")
-            return apiDecorate(ret, 400, "File not supplied") 
-        
+            return apiDecorate(ret, 400, "File not supplied")
+
         uploadedFile = request.files['file']
-        
+
         if not uploadedFile:
             ret['errors'] = []
             ret['errors'].append("File not supplied")
-            return apiDecorate(ret, 400, "File not supplied") 
+            return apiDecorate(ret, 400, "File not supplied")
 
         if not fileHandler.allowed_file(uploadedFile.filename):
             ret['errors'] = []
             ret['errors'].append("File not supported")
-            return apiDecorate(ret, 400, "File not supported") 
+            return apiDecorate(ret, 400, "File not supported")
 
         filename = secure_filename(uploadedFile.filename)
         randNum = randint(1,10000)
@@ -66,15 +67,26 @@ class fileHandler():
         storageLocation = os.path.join(fileHandler.UPLOAD_FOLDER, randName)
         uploadedFile.save(storageLocation)
 
+
+
         fileSize = os.stat(storageLocation).st_size
         fileRead = open(storageLocation, 'r+')
 
-        botoConn = boto.connect_s3(fileHandler.DREAM_key, fileHandler.DREAM_secretKey, host="objects-us-west-1.dream.io")        
+
+
+        botoConn = boto.connect_s3(fileHandler.DREAM_key, fileHandler.DREAM_secretKey, host="objects-us-west-1.dream.io")
         bucket = botoConn.get_bucket(fileHandler.DREAM_Bucket, validate=True)
         k = Key(bucket)
         k.key = randName
         sent = k.set_contents_from_file(fileRead, cb=None, md5=None, reduced_redundancy=False, rewind=True)
-        
-        if sent == fileSize:
-            return "true"
+
+
+        if sent != fileSize:
+            return "false"
+
+        data = models.dataset(user_id=user_id, file_name=uploadedFile.filename, resouce_id=randName)
+
+        session = dbConn().get_session(dbConn().get_engine())
+        session.add(data)
+        session.commit()
         return "false"
