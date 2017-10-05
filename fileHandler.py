@@ -90,3 +90,18 @@ class fileHandler():
         session.add(data)
         session.commit()
         return "false"
+
+@staticmethod
+def retDatasets(user_id):
+
+    ret = {}
+    user = userHandler().getUser(user_id)
+
+
+    session = dbConn().get_session(dbConn().get_engine())
+    allUserDatasets = session.query(models.dataset).filter(models.dataset.user_id == user.id).all()
+
+    if(allUserDatasets is None):
+        ret['errors'] = []
+        ret['errors'].append("No files uploaded")
+        return apiDecorate(ret, 400, "User has not uploaded any files")
