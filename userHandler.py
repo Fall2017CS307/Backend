@@ -147,3 +147,8 @@ class userHandler():
             session.delete(userValidate)
         session.commit()
         return "User Validated"
+
+    def getUser(self,id):
+        session = dbConn().get_session(dbConn().get_engine())
+        user = session.query(models.User).filter(models.User.id == id).first()
+        return user
