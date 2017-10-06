@@ -145,3 +145,22 @@ class userHandler():
         session = dbConn().get_session(dbConn().get_engine())
         user = session.query(models.User).filter(models.User.id == id).first()
         return user
+
+    def getDatasets(self, user_id):
+        ret = {} 
+        user = self.getUser(user_id)
+        if user is None:
+            ret['errors'] = []
+            ret['errors'].append("Invalid User")
+            return apiDecorate(ret, 400, "Invalid User")
+
+        session = session = dbConn().get_session(dbConn().get_engine())
+        datasets = session.query(models.dataset).filter(models.dataset.user_id == user_id).all()
+        returnDict = []
+        for data in datasets:
+            returnData = {}
+            returnData['file_name'] = data.file_name
+            returnData['resource_name'] = data.resource_id
+            returnDict.append(returnData)
+        ret['datasets'] = returnDict
+        return apiDecorate(ret, 200, "Success")
