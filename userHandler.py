@@ -7,7 +7,7 @@ from utils.dbConn import dbConn
 from datetime import datetime
 from random import randint
 from utils.notification import notification
-
+import json 
 class userHandler():
     def login(self):
         ret = {}
@@ -15,8 +15,13 @@ class userHandler():
             argArray = request.args
 
         elif request.method  == "POST":
-            argArray = request.form
+            if(len(request.form) > 0):
+                argArray = request.form
+            else:
+                print request.get_data()
+                argArray = json.loads(request.data)
 
+                
         user = models.User(password=argArray.get("password"), email=argArray.get("email"))
         if  not user.email or not user.password :
             ret['errors'] = []
@@ -38,7 +43,11 @@ class userHandler():
         if request.method == "GET":
             argArray = request.args
         elif request.method  == "POST":
-            argArray = request.form
+            if(len(request.form) > 0):
+                argArray = request.form
+            else:
+                print request.get_data()
+                argArray = json.loads(request.data)
 
         firstName = argArray.get("firstname")
         lastName = argArray.get("lastname")
@@ -109,11 +118,9 @@ class userHandler():
             ret['errors'].append("Server Error")
             return apiDecorate(ret, 500, "Server Error")
         curUser.isEmail = True
-
+        session.commit()
         if(curUser.isPhone == True):
             session.delete(userValidate)
-
-        session.delete(userValidate)
         session.commit()
         return "User Validated"
 
@@ -136,6 +143,7 @@ class userHandler():
             ret['errors'].append("Server Error")
             return apiDecorate(ret, 500, "Server Error")
         curUser.isPhone = True
+        session.commit()
         if(curUser.isEmail == True):
             session.delete(userValidate)
         session.commit()

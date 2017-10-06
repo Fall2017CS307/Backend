@@ -8,4 +8,6 @@ def apiDecorate(returnDict, status_code, response):
     apiReturn['response'] = response
     for key,keyVal in returnDict.iteritems():
         apiReturn[key] = keyVal
+    print response
+    print status_code
     return jsonify(apiReturn)   
