@@ -72,9 +72,9 @@ class dataset(Base):
 
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer,ForeignKey("user.id"))
-    file_name = Column(String(30))
+    file_name = Column(String(60))
     resource_id = Column(String(60))
-
+    isPublic = Column(BOOLEAN, default=0, nullable=False)
 #resouce 40, file 30
     def __init__(self, user_id, file_name, resource_id):
         self.user_id = user_id

@@ -172,3 +172,99 @@ class userHandler():
             returnDict.append(returnData)
         ret['datasets'] = returnDict
         return apiDecorate(ret, 200, "Success")
+
+    def deleteDataset(self, user_id, dataset_id):
+        ret = {} 
+        user = self.getUser(user_id)
+        if user is None:
+            ret['errors'] = []
+            ret['errors'].append("Invalid User")
+            return apiDecorate(ret, 400, "Invalid User")
+
+        session = session = dbConn().get_session(dbConn().get_engine())
+        dataset = session.query(models.dataset).filter(models.dataset.user_id == user_id).filter(models.dataset.id == dataset_id).first()
+        if dataset is None:
+            ret['errors'] = []
+            ret['errors'].append("Invalid dataset or user doesnt own the dataset")
+            return apiDecorate(ret, 400, "Invalid dataset or user doesnt own the dataset")
+        session.delete(dataset)
+        session.commit()
+        return apiDecorate(ret, 200, "Success")
+
+
+    def makeDatasetPublic(self, user_id, dataset_id):
+        ret = {} 
+        user = self.getUser(user_id)
+        if user is None:
+            ret['errors'] = []
+            ret['errors'].append("Invalid User")
+            return apiDecorate(ret, 400, "Invalid User")
+
+        session = session = dbConn().get_session(dbConn().get_engine())
+        dataset = session.query(models.dataset).filter(models.dataset.user_id == user_id).filter(models.dataset.id == dataset_id).first()
+        if dataset is None:
+            ret['errors'] = []
+            ret['errors'].append("Invalid dataset or user doesnt own the dataset")
+            return apiDecorate(ret, 400, "Invalid dataset or user doesnt own the dataset")
+     
+        dataset.isPublic = True
+        session.commit()
+
+        return apiDecorate(ret, 200, "Success")
+
+
+    def makeDatasetPrivate(self, user_id, dataset_id):
+        ret = {} 
+        user = self.getUser(user_id)
+        if user is None:
+            ret['errors'] = []
+            ret['errors'].append("Invalid User")
+            return apiDecorate(ret, 400, "Invalid User")
+
+        session = session = dbConn().get_session(dbConn().get_engine())
+        dataset = session.query(models.dataset).filter(models.dataset.user_id == user_id).filter(models.dataset.id == dataset_id).first()
+        if dataset is None:
+            ret['errors'] = []
+            ret['errors'].append("Invalid dataset or user doesnt own the dataset")
+            return apiDecorate(ret, 400, "Invalid dataset or user doesnt own the dataset")
+     
+        dataset.isPublic = False
+        session.commit()
+
+        return apiDecorate(ret, 200, "Success")
+
+    def getPublicDatasets(self):
+        ret = {} 
+        session = session = dbConn().get_session(dbConn().get_engine())
+        datasets = session.query(models.dataset).filter(models.dataset.isPublic == True).all()
+        returnDict = []
+        for data in datasets:
+            returnData = {}
+            returnData['file_name'] = data.file_name
+            returnData['resource_name'] = data.resource_id
+            returnDict.append(returnData)
+        ret['datasets'] = returnDict
+        return apiDecorate(ret, 200, "Success")
+
+
+    def copyPublicDataset(self, user_id, dataset_id):
+        ret = {} 
+        user = self.getUser(user_id)
+        if user is None:
+            ret['errors'] = []
+            ret['errors'].append("Invalid User")
+            return apiDecorate(ret, 400, "Invalid User")
+
+        session = session = dbConn().get_session(dbConn().get_engine())
+        dataset = session.query(models.dataset).filter(models.dataset.id == dataset_id).filter(models.dataset.isPublic==True).first()
+        if dataset is None:
+            ret['errors'] = []
+            ret['errors'].append("Invalid dataset or dataset is not public")
+            return apiDecorate(ret, 400, "Invalid dataset or dataset is not public")
+     
+        copyDataset = models.dataset(user.id, file_name=dataset.file_name, resource_id=dataset.resource_id)
+        session.add(copyDataset)
+        session.commit()
+        copyDataset.isPublic = True
+        session.commit()
+        return apiDecorate(ret, 200, "Success")
