@@ -13,6 +13,10 @@ from werkzeug.utils import secure_filename
 import boto
 from boto.s3.key import Key
 from os.path import getsize
+import zipfile
+import imghdr
+import csv
+import json
 
 class fileHandler():
     UPLOAD_FOLDER = './static/uploads'
@@ -29,6 +33,27 @@ class fileHandler():
             filename.rsplit('.', 1)[1].lower() in fileHandler.ALLOWED_EXTENSIONS
 
 
+    @staticmethod
+    def csvFile(zipF,zipList):
+        readObject = str(zipF.read(zipList[0]))
+        csvObject = csv.reader(readObject)
+        csvArr = {}
+        csvArr['cue'] = []
+        for row in csvObject:
+            print row
+            #print row[0]
+            #if(not isinstance(row,str)):
+             #   print "Here"
+              #  return None
+            csvArr['cue'].append(row)
+        if(not len(csvArr['cue'])):
+            print "LOL"
+            return None
+        fileArr = []
+        fileArr.append(json.dumps(csvArr))
+        print(fileArr[0])
+        return fileArr
+    
     @staticmethod
     def uploadFile(user_id):
 
@@ -67,9 +92,27 @@ class fileHandler():
         storageLocation = os.path.join(fileHandler.UPLOAD_FOLDER, randName)
         uploadedFile.save(storageLocation)
 
-
-
         fileSize = os.stat(storageLocation).st_size
+
+        if(not zipfile.is_zipfile(storageLocation)):
+            ret['errors'] = []
+            ret['errors'].append("Invalid File, File not a valid zip file")
+            return apiDecorate(ret, 400, "Invalid File")
+        
+        zipF = zipfile.ZipFile(storageLocation)
+        zipList = zipF.namelist()
+        countFiles = len(zipList)
+        #print countFiles
+        if(countFiles <= 0):
+            ret['errors'] = []
+            ret['errors'].append("Zip file empty")
+            return apiDecorate(ret, 400, "Zip file empty")
+        if(countFiles == 1):
+            fileArrr = fileHandler.csvFile(zipF,zipList)
+            if(fileArrr is None):
+                ret['errors'] = []
+                ret['errors'].append("Invalid File, File not a valid zip file")
+                return apiDecorate(ret, 400, "Invalid File")
         fileRead = open(storageLocation, 'r+')
 
 
@@ -89,7 +132,7 @@ class fileHandler():
         session = dbConn().get_session(dbConn().get_engine())
         session.add(data)
         session.commit()
-        return "true"
+        return "true " + randName 
 
 @staticmethod
 def retDatasets(user_id):
