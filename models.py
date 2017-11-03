@@ -56,6 +56,8 @@ class User(Base):
             self.phone = None
             self.errors.append("Invalid phone formatting")
 
+
+
 class user_validate(Base):
     __tablename__ = 'user_validate'
     id = Column(Integer,ForeignKey("user.id"), primary_key=True)
