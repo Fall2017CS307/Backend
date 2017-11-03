@@ -1,33 +1,74 @@
-import os
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 import stripe
+#from userHandler import userHandler
+from utils.dbConn import dbConn
+import MySQLdb
+from jsonReturn import apiDecorate
+import json
+import models
+import os
 
 
 
-stripe_keys = {
-  'secret_key': os.environ['SECRET_KEY'],
-  'publishable_key': os.environ['PUBLISHABLE_KEY']
-}
-
-stripe.api_key = stripe_keys['secret_key']
 
 app = Flask(__name__)
 
-def charge():
-    # Amount in cents
-    amount = 500
+pub_key = 'pk_test_fOAnrRLEB5cDZMCipafCb71E'
+secret_key = 'sk_test_I54z4p3XASvKZAfuwhmDPvlN'
 
+stripe.api_key = secret_key
+
+@app.route('/')
+def index():
+    print pub_key
+    return render_template('index.html', pub_key=pub_key)
+
+@app.route('/thanks')
+def thanks():
+    return render_template('thanks.html')
+
+@app.route('/failure')
+def failure():
+    return render_template('failure.html')
+
+@app.route('/pay', methods=['POST'])
+def pay():
+
+    customer = stripe.Customer.create(email=request.form['stripeEmail'], source=request.form['stripeToken'])
 
     charge = stripe.Charge.create(
         customer=customer.id,
-        amount=amount,
+        amount=99,
         currency='usd',
-        description='Flask Charge'
+        description='The Product'
+
     )
 
-    print(charge)
+    #print(customer.email)
+    #return redirect(url_for('thanks'))
 
-    return render_template('charge.html', amount=amount)
+
+    if charge.paid :
+
+        print(customer.email)
+        session = dbConn().get_session(dbConn().get_engine())
+
+        curUser = session.query(models.User).filter(models.User.email == customer.email).first()
+        print(customer.email)
+
+
+        if(curUser is None):
+            ret['errors'] = []
+            ret['errors'].append("User already exists")
+            return apiDecorate(ret, 400, "User already exists")
+
+        else:
+            curUser.balance = curUser.balance + amount
+            session.commit()
+            return redirect(url_for('thanks'))
+
+    else:
+        return redirect(url_for('failure'))
 
 
 

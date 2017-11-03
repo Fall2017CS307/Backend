@@ -18,6 +18,7 @@ class User(Base):
     email = Column(String(50), nullable=False)
     password = Column(String(32), nullable=False)
     phone = Column(String(10), nullable=False)
+    balance = Column(Integer, default=0, nullable=False)
     isPhone = Column(BOOLEAN, default=0, nullable=False)
     isEmail = Column(BOOLEAN, default=0, nullable=False)
 
@@ -54,6 +55,8 @@ class User(Base):
         else:
             self.phone = None
             self.errors.append("Invalid phone formatting")
+
+
 
 class user_validate(Base):
     __tablename__ = 'user_validate'
