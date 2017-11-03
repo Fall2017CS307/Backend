@@ -18,6 +18,9 @@ class User(Base):
     email = Column(String(50), nullable=False)
     password = Column(String(32), nullable=False)
     phone = Column(String(10), nullable=False)
+    gender = Column(BOOLEAN, nullable=True)
+    skill = Column(Integer, default=0)
+    country = Column(String(50), nullable=True)
     balance = Column(Integer, default=0, nullable=False)
     isPhone = Column(BOOLEAN, default=0, nullable=False)
     isEmail = Column(BOOLEAN, default=0, nullable=False)
@@ -26,7 +29,7 @@ class User(Base):
     def __repr__(self):
             return self.first_name + " " + self.last_name + " " + self.email + " " + self.password + " " + self.phone
 
-    def __init__(self, first_name=None, last_name=None, email=None, password=None, phone=None):
+    def __init__(self, first_name=None, last_name=None, email=None, password=None, phone=None, gender=None, country=None, skill=None):
         self.errors = []
         if(first_name and re.match('^[a-zA-Z]+$', first_name)):
             self.first_name = first_name
@@ -55,8 +58,30 @@ class User(Base):
         else:
             self.phone = None
             self.errors.append("Invalid phone formatting")
-
-
+        if(gender is None):
+            self.gender = None
+        else:
+            try:
+                gender = int(gender)
+                if(gender ==0 or gender == 1):
+                    self.gender = gender
+                else:
+                    self.gender = None
+                    self.errors.append("Gender is not binary")
+            except:
+                self.errors("Gender is not integer")
+                self.gender = None
+        if(skill is None):
+            self.skill = 0
+        else:
+            try:
+                skill = int(skill)
+                if(skill >=0 and skill < 5):
+                    self.skill = skill
+            except:
+                self.skill = 0
+                self.errors.append("Skill is not integer")
+        self.country = country
 
 class user_validate(Base):
     __tablename__ = 'user_validate'
@@ -94,13 +119,21 @@ class experiments(Base):
     batchSize = Column(Integer, default=0, nullable=False)
     description = Column(String(60))
     dataset_id =  Column(Integer,ForeignKey("dataset.id"))
-    def __init__(self,user_id, resource_id, price, batchSize, description, dataset_id):
+    gender = Column(BOOLEAN, nullable=True)
+    skill = Column(Integer, default=0)
+    country = Column(String(50), nullable=True)
+    isPhone = Column(BOOLEAN, default=0, nullable=False)
+    def __init__(self,user_id, resource_id, price, batchSize, description, dataset_id, gender=None, country=None, skill=None):
         self.user_id = user_id
         self.resource_id = resource_id
         self.price = price
         self.batchSize = batchSize
         self.description = description
         self.dataset_id = dataset_id
+        self.gender=gender
+        self.country=country
+        self.skill=skill
+
 class batch(Base):
     __tablename__ = 'batches'
 

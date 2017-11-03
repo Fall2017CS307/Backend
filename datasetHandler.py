@@ -34,12 +34,29 @@ class datasetHandler:
             ret['errors'] = []
             ret['errors'].append("Invalid batch id")
             return apiDecorate(ret, 400, "Invalid batch id")
+        experiment = session.query(models.experiments).filter(models.experiments.resource_id==batch.experiment_id).first()
+        dataset = session.query(models.dataset).filter(models.dataset.id==experiment.dataset_id).first()            
         #k.key = "e_"+randName+"/"+str(batchCount)+".json"
         botoConn = boto.connect_s3(datasetHandler.DREAM_key, datasetHandler.DREAM_secretKey, host="objects-us-west-1.dream.io")
         bucket = botoConn.get_bucket(datasetHandler.DREAM_Bucket, validate=False)
         k = Key(bucket)
         k.key = "e_"+batch.experiment_id+"/"+str(batch.local_resource_id)+".json"
         fileJson = k.get_contents_as_string()
+        fileArr = json.loads(fileJson)
+        ret['description']  = experiment.description
+        if(dataset.isMedia == 1):
+            filesArr = []
+            for item in fileArr:
+                itemKey =  dataset.resource_id + "/" + str(item)
+                itemK = Key(bucket)
+                fileEntry = {}
+                fileEntry['name'] = item
+                fileEntry['link'] = itemK.generate_url(3600, query_auth=True, force_http=True)
+                filesArr.append(fileEntry)
+            ret['files'] = filesArr
+        else:
+            ret['data'] = fileArr
+        return apiDecorate(ret, 200, "Success")
         #print k.generate_url(3600, query_auth=True, force_http=True)
         return fileJson
         #print fileJson
@@ -65,13 +82,21 @@ class datasetHandler:
         return batches
     
     @staticmethod
-    def getExperiments():
-        ret = {}
+    def getExperiments(user_id):
         session = dbConn().get_session(dbConn().get_engine())
+        user = session.query(models.User).filter(models.User.id == user_id).first()
+        if(user is None):
+            ret['errors'] = []
+            ret['errors'].append("Invalid User")
+            return apiDecorate(ret, 400, "Invalid User")
+
+        ret = {}
         batches = session.query(models.batch.experiment_id).filter(models.batch.user_id==None).distinct(models.batch.experiment_id).all()
         experiments = []
         for batch in batches:
             experiment = session.query(models.experiments).filter(models.experiments.resource_id==batch[0]).first()
+            if((experiment.gender != user.gender) or (experiment.country!=user.country) or (experiment.skill > user.skill)):
+                continue
             tempExperiment = {}
             tempExperiment['id'] = experiment.id
             tempExperiment['price'] = experiment.price
@@ -169,6 +194,9 @@ class datasetHandler:
         description = argArray.get('description')
         multiSelect = argArray.get('multiSelect')
         datasetType = argArray.get('datasetType')
+        gender = argArray.get("gender")
+        country = argArray.get("country")
+        skill = argArray.get("skill")
 
         if(multiSelect is None):
             multiSelect = 1
@@ -208,7 +236,7 @@ class datasetHandler:
             ret['errors'] = []
             ret['errors'].append("Batch problems")
             return apiDecorate(ret, 400, "Batch problems")
-        experiment = models.experiments(user.id, randName, price, len(batches), description, dataset.id)
+        experiment = models.experiments(user.id, randName, price, len(batches), description, dataset.id, gender, country, skill)
         session.add(experiment)
         session.commit()
         botoConn = boto.connect_s3(datasetHandler.DREAM_key, datasetHandler.DREAM_secretKey, host="objects-us-west-1.dream.io")
