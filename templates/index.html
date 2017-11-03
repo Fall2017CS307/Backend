@@ -30,12 +30,14 @@
       </div>
 
       <div class="jumbotron">
+
+
         <h1 class="display-3">The Product</h1>
         <p class="lead">Purchase The Product for only $99.</p>
         <form action="{{ url_for('pay') }}" method="POST">
           <script
             src="https://checkout.stripe.com/checkout.js" class="stripe-button"
-            data-key="{{ secret_key }}"
+            data-key="{{ pub_key }}"
             data-amount="99"
             data-name="Demo Site"
             data-description="Widget"

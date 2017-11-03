@@ -7,7 +7,7 @@ from utils.dbConn import dbConn
 from datetime import datetime
 from random import randint
 from utils.notification import notification
-import json 
+import json
 class userHandler():
     def login(self):
         ret = {}
@@ -21,7 +21,7 @@ class userHandler():
                 print request.get_data()
                 argArray = json.loads(request.data)
 
-                
+
         user = models.User(password=argArray.get("password"), email=argArray.get("email"))
         if  not user.email or not user.password :
             ret['errors'] = []
@@ -155,7 +155,7 @@ class userHandler():
         return user
 
     def getDatasets(self, user_id):
-        ret = {} 
+        ret = {}
         user = self.getUser(user_id)
         if user is None:
             ret['errors'] = []
@@ -174,7 +174,7 @@ class userHandler():
         return apiDecorate(ret, 200, "Success")
 
     def deleteDataset(self, user_id, dataset_id):
-        ret = {} 
+        ret = {}
         user = self.getUser(user_id)
         if user is None:
             ret['errors'] = []
@@ -193,7 +193,7 @@ class userHandler():
 
 
     def makeDatasetPublic(self, user_id, dataset_id):
-        ret = {} 
+        ret = {}
         user = self.getUser(user_id)
         if user is None:
             ret['errors'] = []
@@ -206,7 +206,7 @@ class userHandler():
             ret['errors'] = []
             ret['errors'].append("Invalid dataset or user doesnt own the dataset")
             return apiDecorate(ret, 400, "Invalid dataset or user doesnt own the dataset")
-     
+
         dataset.isPublic = True
         session.commit()
 
@@ -214,7 +214,7 @@ class userHandler():
 
 
     def makeDatasetPrivate(self, user_id, dataset_id):
-        ret = {} 
+        ret = {}
         user = self.getUser(user_id)
         if user is None:
             ret['errors'] = []
@@ -227,14 +227,14 @@ class userHandler():
             ret['errors'] = []
             ret['errors'].append("Invalid dataset or user doesnt own the dataset")
             return apiDecorate(ret, 400, "Invalid dataset or user doesnt own the dataset")
-     
+
         dataset.isPublic = False
         session.commit()
 
         return apiDecorate(ret, 200, "Success")
 
     def getPublicDatasets(self):
-        ret = {} 
+        ret = {}
         session = session = dbConn().get_session(dbConn().get_engine())
         datasets = session.query(models.dataset).filter(models.dataset.isPublic == True).all()
         returnDict = []
@@ -248,7 +248,7 @@ class userHandler():
 
 
     def copyPublicDataset(self, user_id, dataset_id):
-        ret = {} 
+        ret = {}
         user = self.getUser(user_id)
         if user is None:
             ret['errors'] = []
@@ -261,7 +261,7 @@ class userHandler():
             ret['errors'] = []
             ret['errors'].append("Invalid dataset or dataset is not public")
             return apiDecorate(ret, 400, "Invalid dataset or dataset is not public")
-     
+
         copyDataset = models.dataset(user.id, file_name=dataset.file_name, resource_id=dataset.resource_id)
         session.add(copyDataset)
         session.commit()
