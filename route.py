@@ -14,8 +14,7 @@ app.add_url_rule('/api/verify/phone/<string:key>', '/api/verify/phone', userHand
 app.add_url_rule('/api/<int:user_id>/upload/<int:datasetType>', '/api/user_id/upload', fileHandler.uploadFile, methods=['POST'])
 app.add_url_rule('/api/<int:user_id>/datasets', '/api/user_id/datasets', userHandler().getDatasets, methods=['POST', 'GET'])
 
-
-
+app.add_url_rule('api/pay','api/pay', paymentHandler.pay, methods=['POST'])
 #^THIS MIGHT REQUIRE SOME MODIFICATION
 
 #'/api/<int:user_id>/datasets', '/api/user_id/datasets',
@@ -29,6 +28,7 @@ app.add_url_rule('/api/<int:user_id>/dataset/copy/<int:dataset_id>/', '/api/user
 #Create Experiments
 app.add_url_rule('/api/<int:user_id>/create/<int:dataset_id>/', '/api/user_id/create/dataset_id', datasetHandler.createExperiment, methods=['POST', 'GET'])
 app.add_url_rule('/api/getExperiments/<int:user_id>', '/api/getExperiments/user_id', datasetHandler.getExperiments, methods=['POST', 'GET'])
+app.add_url_rule('/api/batch/closeBatch/<int:batch_id>','/api/batch/closeBatch/batch_id',datasetHandler.userBatchExtracter, methods=['POST', 'GET'])
 
 app.add_url_rule('/api/<int:user_id>/assign/<int:experiment_id>','/api/user_id/assign/experiment_id', datasetHandler.assignBatch, methods=['POST', 'GET'])
 app.add_url_rule('/api/<int:user_id>/batchList','/api/user_id/batchList', datasetHandler.batchList, methods=['POST', 'GET'])
