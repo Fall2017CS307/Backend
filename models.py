@@ -90,13 +90,14 @@ class experiments(Base):
     price = Column(Integer, default=0, nullable=False)
     batchSize = Column(Integer, default=0, nullable=False)
     description = Column(String(60))
-
-    def __init__(self,user_id, resource_id, price, batchSize, description):
+    dataset_id =  Column(Integer,ForeignKey("dataset.id"))
+    def __init__(self,user_id, resource_id, price, batchSize, description, dataset_id):
         self.user_id = user_id
         self.resource_id = resource_id
         self.price = price
         self.batchSize = batchSize
         self.description = description
+        self.dataset_id = dataset_id
 class batch(Base):
     __tablename__ = 'batches'
 

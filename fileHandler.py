@@ -189,7 +189,7 @@ class fileHandler():
             print len(file['fileByte'])
             print sent
 
-        data = models.dataset(user_id=user_id, isMedia=1, resource_id=randName)
+        data = models.dataset(user_id=user_id, isMedia=datasetType, resource_id=randName)
 
         session = dbConn().get_session(dbConn().get_engine())
         session.add(data)

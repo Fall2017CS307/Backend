@@ -27,7 +27,10 @@ app.add_url_rule('/api/<int:user_id>/dataset/copy/<int:dataset_id>/', '/api/user
 
 #Create Experiments
 app.add_url_rule('/api/<int:user_id>/create/<int:dataset_id>/', '/api/user_id/create/dataset_id', datasetHandler.createExperiment, methods=['POST', 'GET'])
+app.add_url_rule('/api/getExperiments', '/api/getExperiments', datasetHandler.getExperiments, methods=['POST', 'GET'])
 
-
+app.add_url_rule('/api/<int:user_id>/assign/<int:experiment_id>','/api/user_id/assign/experiment_id', datasetHandler.assignBatch, methods=['POST', 'GET'])
+app.add_url_rule('/api/<int:user_id>/batchList','/api/user_id/batchList', datasetHandler.batchList, methods=['POST', 'GET'])
+app.add_url_rule('/api/<int:batch_id>/getBatch','/api/batch_id/getBatch', datasetHandler.getBatch, methods=['POST', 'GET'])
 if __name__ == '__main__':
     app.run(debug=True)

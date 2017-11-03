@@ -26,7 +26,26 @@ class datasetHandler:
     DREAM_key = os.environ.get('dream_key') or "none"
     
     @staticmethod
-    def makeMediaBatches(dataset, batchSize):
+    def getBatch(batch_id):
+        ret = {}
+        session = dbConn().get_session(dbConn().get_engine())
+        batch = session.query(models.batch).filter(models.batch.id==batch_id).first()
+        if(batch is None):
+            ret['errors'] = []
+            ret['errors'].append("Invalid batch id")
+            return apiDecorate(ret, 400, "Invalid batch id")
+        #k.key = "e_"+randName+"/"+str(batchCount)+".json"
+        botoConn = boto.connect_s3(datasetHandler.DREAM_key, datasetHandler.DREAM_secretKey, host="objects-us-west-1.dream.io")
+        bucket = botoConn.get_bucket(datasetHandler.DREAM_Bucket, validate=False)
+        k = Key(bucket)
+        k.key = "e_"+batch.experiment_id+"/"+str(batch.local_resource_id)+".json"
+        fileJson = k.get_contents_as_string()
+        #print k.generate_url(3600, query_auth=True, force_http=True)
+        return fileJson
+        #print fileJson
+
+    @staticmethod
+    def makeBatches(dataset, batchSize):
         ret = {}
         botoConn = boto.connect_s3(datasetHandler.DREAM_key, datasetHandler.DREAM_secretKey, host="objects-us-west-1.dream.io")
         bucket = botoConn.get_bucket(datasetHandler.DREAM_Bucket, validate=False)
@@ -44,6 +63,77 @@ class datasetHandler:
             batches.append(filesArr[curIndex:curIndex+batchSize])
             curIndex+=batchSize
         return batches
+    
+    @staticmethod
+    def getExperiments():
+        ret = {}
+        session = dbConn().get_session(dbConn().get_engine())
+        batches = session.query(models.batch.experiment_id).filter(models.batch.user_id==None).distinct(models.batch.experiment_id).all()
+        experiments = []
+        for batch in batches:
+            experiment = session.query(models.experiments).filter(models.experiments.resource_id==batch[0]).first()
+            tempExperiment = {}
+            tempExperiment['id'] = experiment.id
+            tempExperiment['price'] = experiment.price
+            tempExperiment['description'] = experiment.description
+            experiments.append(tempExperiment)
+        
+        ret['experiments'] = experiments
+        return apiDecorate(ret,200,"Success")
+    
+    @staticmethod
+    def batchList(user_id):
+        ret = {}
+        session = dbConn().get_session(dbConn().get_engine())
+        user = session.query(models.User).filter(models.User.id == user_id).first()
+        if(user is None):
+            ret['errors'] = []
+            ret['errors'].append("Invalid User")
+            return apiDecorate(ret, 400, "Invalid User")
+        batches = session.query(models.batch).filter(models.batch.user_id == user.id).filter(models.batch.isCompleted==False).all()
+        userBatches = []
+        for batch in batches:
+            userBatch = {}
+            userBatch['id'] = batch.id
+            experiment = session.query(models.experiments).filter(models.experiments.resource_id == batch.experiment_id).first()
+            userBatch['description'] = experiment.description
+            userBatch['price'] = experiment.price
+            userBatches.append(userBatch)
+        ret['batches'] = userBatches
+        return apiDecorate(ret, 200, "Success")
+    
+    @staticmethod
+    def assignBatch(user_id, experiment_id):
+        ret = {}
+        session = dbConn().get_session(dbConn().get_engine())
+        user = session.query(models.User).filter(models.User.id == user_id).first()
+        if(user is None):
+            ret['errors'] = []
+            ret['errors'].append("Invalid User")
+            return apiDecorate(ret, 400, "Invalid User")
+        
+        experiment = session.query(models.experiments).filter(models.experiments.id == experiment_id).first()
+        if(experiment is None):
+            ret['errors'] = []
+            ret['errors'].append("Invalid experiment")
+            return apiDecorate(ret, 400, "Invalid experiment")
+        
+        hasBatch = session.query(models.batch).filter(models.batch.experiment_id == experiment.resource_id).filter(models.batch.user_id == user.id).first()
+        if(hasBatch is not None):
+            ret['errors'] = []
+            ret['errors'].append("User already has a batch")
+            return apiDecorate(ret, 400, "User already has a batch")
+        batch = session.query(models.batch).filter(models.batch.experiment_id == experiment.resource_id).filter(models.batch.user_id==None).first()
+        if(batch is None):
+            ret['errors'] = []
+            ret['errors'].append("No batch available")
+            return apiDecorate(ret, 400, "No batch available")
+
+        batch.user_id = user.id
+        session.commit()
+        ret['batch_id'] = batch.id
+
+        return apiDecorate(ret, 200, "Success")
 
     @staticmethod
     def createExperiment(user_id, dataset_id):
@@ -90,6 +180,7 @@ class datasetHandler:
         try:
             batchSize = int(batchSize)
             price = float(price)
+            datasetType = int(datasetType)
         except:
             ret['errors'] = []
             ret['errors'].append("price/batchSize not integer")
@@ -105,27 +196,40 @@ class datasetHandler:
         timeStamp = datetime.now()
         randName= str(randNum) + str(timeStamp.year) + str(timeStamp.month) + randString + str(timeStamp.day) + str(timeStamp.hour) + str(timeStamp.minute) + str(timeStamp.second) + str(randNum2)
 
-        if(dataset.isMedia == 1):
-            batches = datasetHandler.makeMediaBatches(dataset,batchSize)
-            if(batches is None):
-                ret['errors'] = []
-                ret['errors'].append("Batch problems")
-                return apiDecorate(ret, 400, "Batch problems")
-            experiment = models.experiments(user.id, randName, price, len(batches), description)
-            session.add(experiment)
+        if(int(dataset.isMedia) != int(datasetType)):
+            print int(dataset.isMedia)
+            print datasetType
+            ret['errors'] = []
+            ret['errors'].append("Invalid dataset type and experiment type")
+            return apiDecorate(ret, 400, "Invalid dataset type and experiment type")
+
+        batches = datasetHandler.makeBatches(dataset,batchSize)
+        if(batches is None):
+            ret['errors'] = []
+            ret['errors'].append("Batch problems")
+            return apiDecorate(ret, 400, "Batch problems")
+        experiment = models.experiments(user.id, randName, price, len(batches), description, dataset.id)
+        session.add(experiment)
+        session.commit()
+        botoConn = boto.connect_s3(datasetHandler.DREAM_key, datasetHandler.DREAM_secretKey, host="objects-us-west-1.dream.io")
+        bucket = botoConn.get_bucket(datasetHandler.DREAM_Bucket, validate=False)
+        batchCount = 0
+        
+        for batch in batches:
+            batchJson  = json.dumps(batch)
+            k = Key(bucket)
+            k.key = "e_"+randName+"/"+str(batchCount)+".json"
+            sent = k.set_contents_from_string(batchJson, cb=None, md5=None, reduced_redundancy=False)
+            batch = models.batch(randName, batchCount)
+            session.add(batch)
             session.commit()
-            botoConn = boto.connect_s3(datasetHandler.DREAM_key, datasetHandler.DREAM_secretKey, host="objects-us-west-1.dream.io")
-            bucket = botoConn.get_bucket(datasetHandler.DREAM_Bucket, validate=False)
-            batchCount = 0
-            for batch in batches:
-                batchJson  = json.dumps(batch)
-                k = Key(bucket)
-                k.key = "e_"+randName+"/"+str(batchCount)+".json"
-                sent = k.set_contents_from_string(batchJson, cb=None, md5=None, reduced_redundancy=False)
-                batch = models.batch(randName, batchCount)
-                session.add(batch)
-                session.commit()
-                batchCount+=1 
-            print "Here"
-        print "Processing Batches"
-        return "Success"
+            batchCount+=1 
+        
+        return apiDecorate(ret, 200, "Success")
+'''
+if __name__ == '__main__':
+    botoConn = boto.connect_s3(datasetHandler.DREAM_key, datasetHandler.DREAM_secretKey, host="objects-us-west-1.dream.io")
+    bucket = botoConn.get_bucket(datasetHandler.DREAM_Bucket, validate=False)
+    for o in bucket.list():
+        o.set_acl('public-read')
+'''
