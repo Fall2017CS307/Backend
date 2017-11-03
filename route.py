@@ -13,7 +13,7 @@ app.add_url_rule('/api/verify/phone/<string:key>', '/api/verify/phone', userHand
 app.add_url_rule('/api/<int:user_id>/upload/<int:datasetType>', '/api/user_id/upload', fileHandler.uploadFile, methods=['POST'])
 app.add_url_rule('/api/<int:user_id>/datasets', '/api/user_id/datasets', userHandler().getDatasets, methods=['POST', 'GET'])
 
-#app.add_url_rule('api/charge','api/charge', paymentHandler().charge, methods=['POST'])
+
 
 #^THIS MIGHT REQUIRE SOME MODIFICATION
 
