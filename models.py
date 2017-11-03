@@ -73,15 +73,43 @@ class dataset(Base):
 
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer,ForeignKey("user.id"))
-    file_name = Column(String(60))
     resource_id = Column(String(60))
+    isMedia = Column(BOOLEAN, default=0, nullable=False)
     isPublic = Column(BOOLEAN, default=0, nullable=False)
 #resouce 40, file 30
-    def __init__(self, user_id, file_name, resource_id):
+    def __init__(self, user_id, isMedia, resource_id):
         self.user_id = user_id
-        self.file_name = file_name
+        self.isMedia = isMedia
         self.resource_id = resource_id
 
+class experiments(Base):
+    __tablename__ = 'experiments'
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer,ForeignKey("user.id"))
+    resource_id =  Column(String(60),unique=True, nullable=False)
+    price = Column(Integer, default=0, nullable=False)
+    batchSize = Column(Integer, default=0, nullable=False)
+    description = Column(String(60))
+
+    def __init__(self,user_id, resource_id, price, batchSize, description):
+        self.user_id = user_id
+        self.resource_id = resource_id
+        self.price = price
+        self.batchSize = batchSize
+        self.description = description
+class batch(Base):
+    __tablename__ = 'batches'
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer,ForeignKey("user.id"))
+    experiment_id = Column(String(60),ForeignKey("experiments.resource_id"))
+    local_resource_id = Column(Integer, default=0, nullable=False)
+    isCompleted = Column(BOOLEAN, default=0, nullable=False)
+
+    def __init__(self,experiment_id, local_resource_id):
+        self.experiment_id = experiment_id
+        self.local_resource_id = local_resource_id
 
 def setupTables():
     engine=dbConn.dbConn().get_engine()
