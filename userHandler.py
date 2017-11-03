@@ -184,7 +184,6 @@ class userHandler():
         returnDict = []
         for data in datasets:
             returnData = {}
-            returnData['file_name'] = data.file_name
             returnData['resource_name'] = data.resource_id
             returnDict.append(returnData)
         ret['datasets'] = returnDict

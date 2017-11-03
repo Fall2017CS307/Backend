@@ -63,7 +63,7 @@ def pay():
             return redirect(url_for('failure'))
 
         else:
-            curUser.balance = curUser.balance + amount
+            curUser.balance = curUser.balance + charge.amount
             session.commit()
             return redirect(url_for('thanks'))
 
