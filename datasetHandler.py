@@ -161,7 +161,7 @@ class datasetHandler:
         return apiDecorate(ret, 200, "Success")
 
     @staticmethod
-    def createExperiment(user_id, dataset_id):
+    def createExperiment(user_id):
         ret = {}
         argArray = {}
         if request.method == "GET":
@@ -174,6 +174,18 @@ class datasetHandler:
                 print request.get_data()
                 argArray = json.loads(request.data)
 
+        dataset_id = argArray.get("dataset_id")
+        if(dataset_id is None):
+            ret['errors'] = []
+            ret['errors'].append("Invalid dataset")
+            return apiDecorate(ret, 400, "Invalid dataset")
+        try:
+            dataset_id = int(dataset_id)
+        except:
+            ret['errors'] = []
+            ret['errors'].append("Invalid dataset")
+            return apiDecorate(ret, 400, "Invalid dataset")
+        
         # price, description, multiSelect=None
         session = dbConn().get_session(dbConn().get_engine())
         user = session.query(models.User).filter(models.User.id == user_id).first()
@@ -197,7 +209,17 @@ class datasetHandler:
         gender = argArray.get("gender")
         country = argArray.get("country")
         skill = argArray.get("skill")
-
+        if(gender is not None and len(gender) <1):
+            gender = None
+        if(country is not None and len(country) < 1):
+            country = None
+        if(skill is not None and len(skill) < 1):
+            skill = 0
+        else:
+            try:
+                skill = int(skill)
+            except:
+                skill = 0 
         if(multiSelect is None):
             multiSelect = 1
 

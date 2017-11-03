@@ -27,7 +27,7 @@ app.add_url_rule('/api/datasets/public', '/api/datasets/public', userHandler().g
 app.add_url_rule('/api/<int:user_id>/dataset/copy/<int:dataset_id>/', '/api/user_id/dataset/copy/private/dataset_id', userHandler().copyPublicDataset, methods=['POST', 'GET'])
 
 #Create Experiments
-app.add_url_rule('/api/<int:user_id>/create/<int:dataset_id>/', '/api/user_id/create/dataset_id', datasetHandler.createExperiment, methods=['POST', 'GET'])
+app.add_url_rule('/api/<int:user_id>/create', '/api/user_id/create', datasetHandler.createExperiment, methods=['POST', 'GET'])
 app.add_url_rule('/api/getExperiments/<int:user_id>', '/api/getExperiments/user_id', datasetHandler.getExperiments, methods=['POST', 'GET'])
 app.add_url_rule('/api/batch/closeBatch/<int:batch_id>','/api/batch/closeBatch/batch_id',datasetHandler.userBatchExtracter, methods=['POST', 'GET'])
 
