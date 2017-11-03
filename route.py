@@ -4,6 +4,7 @@ from utils import dbConn
 from userHandler import userHandler
 from fileHandler import fileHandler
 from datasetHandler import datasetHandler
+from paymentHandler import paymentHandler
 app = Flask(__name__)
 
 app.add_url_rule('/api/getUser/<int:user_id>','/app/getUser/user_id', userHandler.getUserById)
@@ -14,7 +15,7 @@ app.add_url_rule('/api/verify/phone/<string:key>', '/api/verify/phone', userHand
 app.add_url_rule('/api/<int:user_id>/upload/<int:datasetType>', '/api/user_id/upload', fileHandler.uploadFile, methods=['POST'])
 app.add_url_rule('/api/<int:user_id>/datasets', '/api/user_id/datasets', userHandler().getDatasets, methods=['POST', 'GET'])
 
-app.add_url_rule('api/pay','api/pay', paymentHandler.pay, methods=['POST'])
+app.add_url_rule('/api/pay','api/pay', paymentHandler.pay, methods=['POST'])
 #^THIS MIGHT REQUIRE SOME MODIFICATION
 
 #'/api/<int:user_id>/datasets', '/api/user_id/datasets',
@@ -34,4 +35,4 @@ app.add_url_rule('/api/<int:user_id>/assign/<int:experiment_id>','/api/user_id/a
 app.add_url_rule('/api/<int:user_id>/batchList','/api/user_id/batchList', datasetHandler.batchList, methods=['POST', 'GET'])
 app.add_url_rule('/api/<int:batch_id>/getBatch','/api/batch_id/getBatch', datasetHandler.getBatch, methods=['POST', 'GET'])
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True,host="0.0.0.0")
