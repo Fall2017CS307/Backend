@@ -9,6 +9,19 @@ from random import randint
 from utils.notification import notification
 import json
 class userHandler():
+    
+    @staticmethod
+    def getUserById(user_id):
+        session = dbConn().get_session(dbConn().get_engine())
+        retUser = session.query(models.User).filter(models.User.id == user_id).first()
+        if(retUser is None):
+            return ""
+        ret = {}
+        ret['id'] = retUser.id
+        ret['name'] = retUser.first_name
+        return json.dumps(ret)
+
+
     def login(self):
         ret = {}
         if request.method == "GET":
@@ -35,7 +48,8 @@ class userHandler():
             ret['errors'] = []
             ret['errors'].append("Incorect User/password combinator or the user is not registered")
             return apiDecorate(ret, 400, "Invalid and/or expired key supplied")
-
+        ret['id'] = user.id
+        
         return apiDecorate(ret, 200, "Login Accepted")
 
     def register(self):
@@ -54,9 +68,12 @@ class userHandler():
         email = argArray.get("email")
         phone = argArray.get("phone")
         password = argArray.get("password")
+        gender = argArray.get("gender")
+        country = argArray.get("country")
+        skill = argArray.get("skill")
 
 
-        user = models.User(first_name = firstName, last_name=lastName, password=password, email=email, phone=phone)
+        user = models.User(first_name = firstName, last_name=lastName, password=password, email=email, phone=phone, gender=gender, country=country,skill=skill)
 
         if len(user.errors) > 0:
             ret['errors'] = user.errors
