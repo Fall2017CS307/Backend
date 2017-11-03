@@ -20,7 +20,7 @@ class userHandler():
         ret['id'] = retUser.id
         ret['name'] = retUser.first_name
         return json.dumps(ret)
-    
+
 
     def login(self):
         ret = {}
@@ -48,7 +48,8 @@ class userHandler():
             ret['errors'] = []
             ret['errors'].append("Incorect User/password combinator or the user is not registered")
             return apiDecorate(ret, 400, "Invalid and/or expired key supplied")
-
+        ret['id'] = user.id
+        
         return apiDecorate(ret, 200, "Login Accepted")
 
     def register(self):

@@ -213,11 +213,18 @@ class datasetHandler:
             ret['errors'] = []
             ret['errors'].append("price/batchSize not integer")
             return apiDecorate(ret, 400, "price/batchSize not integer")
-
         if(price < 0):
             ret['errors'] = []
             ret['errors'].append("Price less than 0")
             return apiDecorate(ret, 400, "Price less than 0")
+        totalCost = batchSize*price
+        if(user.balance < totalCost):
+            ret['errors'] = []
+            ret['errors'].append("Insufficient funds")
+            return apiDecorate(ret, 400, "Insufficient funds")
+        else:
+             user.balance-= totalCost
+        session.commit()
         randNum = randint(1,10000)
         randNum2 = randint(1,10000)
         randString = ''.join(random.choice('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ') for i in range(randint(10,20)))
