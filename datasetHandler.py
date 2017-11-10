@@ -291,7 +291,7 @@ class datasetHandler:
 
 
         curBatch = session.query(models.batch).filter(models.batch.id == batch_id).first()
-        curBatch.isCompleted= true
+        curBatch.isCompleted= True
 
         curExp = session.query(models.experiments).filter(models.experiment.resource_id == curBatch.experiment_id)
         price = curExp.price
