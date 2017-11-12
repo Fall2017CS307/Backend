@@ -32,19 +32,23 @@ def test_login():
 	invalidEmail = "invalid@datonate.com"
 	invalidPassword="InvalidPassword"
 	
+	jsonStr, suc = call_login(email, password)
+	if(not suc):
+		assert False,"Login unsuccessfull for valid user \n Response + " +jsonStr
+
+	jsonStr, suc = call_login(email, invalidPassword)
+	if(suc):
+		assert False,"Login successfull for invalid user \n Response + " +jsonStr
+
+	jsonStr, suc = call_login(invalidEmail, password)
+	if(suc):
+		assert False,"Login Success for invalid password \n Response + " + str(jsonArr)
+	
+## call functions to suppirt test cases
+
+def call_login(email, password):
 	jsonString  = urllib2.urlopen(SERVER_ADDRESS+"/api/login?email="+email+"&password="+password).read()	
 	jsonArr = json.loads(jsonString)
 	if(jsonArr['status']!=200):
-		assert False,"Login Failed for valid user/password combination \n Response + " + str(jsonArr)
-	
-	jsonString  = urllib2.urlopen(SERVER_ADDRESS+"/api/login?email="+invalidEmail+"&password="+password).read()	
-	jsonArr = json.loads(jsonString)
-	if(jsonArr['status']==200):
-		assert False,"Login Success for invalid user \n Response + " + str(jsonArr)
-
-	jsonString  = urllib2.urlopen(SERVER_ADDRESS+"/api/login?email="+email+"&password="+invalidPassword).read()	
-	jsonArr = json.loads(jsonString)
-	if(jsonArr['status']==200):
-		assert False,"Login Success for invalid password \n Response + " + str(jsonArr)
-	
-	
+		return str(jsonArr), False
+	return str(jsonArr), True
