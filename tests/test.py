@@ -10,6 +10,9 @@ import urllib2
 
 SERVER_ADDRESS = "http://127.0.0.1:5000"
 
+email_new = "ramyaksingh@yahoo.com"
+password_new = "secret"
+
 def test_db_config():
 	try:
 		engine = db.dbConn().get_engine()
@@ -25,6 +28,37 @@ def test_table_creation():
 				assert False, "Database tables not created"
 	except:
 		assert False, "Check previous test cases!"
+
+## call functions to suppirt test cases
+
+def test_emailVerification():
+	SERVER_ADDRESS + "/api/verify/email" + email/
+
+def test_registration():
+
+	email_existing = "achellan@purdue.edu"
+	password_existing = "secret"
+
+	firstname = "xyz"
+	lastname = "abc"
+	phone = "9876543210"
+
+
+	jsonStr, suc = call_registration(firstname, lastname, email_existing, password_existing, phone)
+
+	if(suc):
+		assert False,"Registration successful for already existing user \n Response + " +jsonStr
+
+
+	jsonStr, suc = call_registration(firstname, lastname, email_new, password_new, phone)
+
+	if(not suc):
+		assert False,"Registration unsuccessful for new user with valid information \n Response + " +jsonStr
+
+
+	tempUser = session.query(models.User).filter(models.User.email == email_new).first()
+	session.delete(tempUser)
+	session.commit()
 
 def test_login():
 	email = "achellan@purdue.edu"
@@ -43,28 +77,6 @@ def test_login():
 	jsonStr, suc = call_login(invalidEmail, password)
 	if(suc):
 		assert False,"Login Success for invalid password \n Response + " + str(jsonArr)
-
-## call functions to suppirt test cases
-
-def test_registration():
-
-	email_existing = "achellan@purdue.edu"
-	password_existing = "secret"
-	email_new = "ramyaksingh@yahoo.com"
-	password_new = "secret"
-	firstname = "xyz"
-	lastname = "abc"
-	phone = "9876543210"
-
-	jsonStr, suc = call_registration(firstname, lastname, email_existing, password_existing, phone)
-
-	if(suc):
-		assert False,"Registration successful for already existing user \n Response + " +jsonStr
-
-	jsonStr, suc = call_registration(firstname, lastname, email_new, password_new, phone)
-
-	if(not suc):
-		assert False,"Registration unsuccessful for new user with valid information \n Response + " +jsonStr
 
 
 def call_login(email, password):
