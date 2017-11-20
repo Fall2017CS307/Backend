@@ -93,7 +93,7 @@ class datasetHandler:
             else:
                 print request.get_data()
                 argArray = json.loads(request.data)
-        isSort = argArray.get("sort")
+        sort = argArray.get("sort")
         session = dbConn().get_session(dbConn().get_engine())
         user = session.query(models.User).filter(models.User.id == user_id).first()
         if(user is None):
