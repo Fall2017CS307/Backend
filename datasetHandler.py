@@ -83,6 +83,17 @@ class datasetHandler:
 
     @staticmethod
     def getExperiments(user_id):
+        argArray = {}
+        if request.method == "GET":
+            argArray = request.args
+
+        elif request.method  == "POST":
+            if(len(request.form) > 0):
+                argArray = request.form
+            else:
+                print request.get_data()
+                argArray = json.loads(request.data)
+        isSort = argArray.get("sort")
         session = dbConn().get_session(dbConn().get_engine())
         user = session.query(models.User).filter(models.User.id == user_id).first()
         if(user is None):
@@ -91,7 +102,10 @@ class datasetHandler:
             return apiDecorate(ret, 400, "Invalid User")
 
         ret = {}
-        batches = session.query(models.batch.experiment_id).filter(models.batch.user_id==None).distinct(models.batch.experiment_id).all()
+        if(sort is None):
+            batches = session.query(models.batch.experiment_id).filter(models.batch.user_id==None).distinct(models.batch.experiment_id).all()
+        elif(sort == "compensation"):
+             batches = session.query(models.batch.experiment_id).filter(models.batch.user_id==None).distinct(models.batch.experiment_id).order_by(desc(models.batch.price)).all()
         experiments = []
         for batch in batches:
             experiment = session.query(models.experiments).filter(models.experiments.resource_id==batch[0]).first()
