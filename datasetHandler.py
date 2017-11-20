@@ -18,6 +18,7 @@ import imghdr
 import csv
 import json
 
+
 class datasetHandler:
     DREAM_username = os.environ.get('dream_user') or "none"
     DREAM_secretKey = os.environ.get('dream_secretKey') or "none"
@@ -226,6 +227,13 @@ class datasetHandler:
         gender = argArray.get("gender")
         country = argArray.get("country")
         skill = argArray.get("skill")
+        dt = argArray.get("deadline")
+
+        if(dt is not None):
+            deadline = datetime.datetime.strptime(dt, '%Y/%m/%d')
+        else:
+            deadline = None
+
         if(gender is not None and len(gender) <1):
             gender = None
         if(country is not None and len(country) < 1):
@@ -282,7 +290,7 @@ class datasetHandler:
             ret['errors'] = []
             ret['errors'].append("Batch problems")
             return apiDecorate(ret, 400, "Batch problems")
-        experiment = models.experiments(user.id, randName, price, len(batches), description, dataset.id, gender, country, skill)
+        experiment = models.experiments(user.id, randName, price, len(batches), description, dataset.id, gender, country, skill, deadline)
         session.add(experiment)
         session.commit()
         botoConn = boto.connect_s3(datasetHandler.DREAM_key, datasetHandler.DREAM_secretKey, host="objects-us-west-1.dream.io")

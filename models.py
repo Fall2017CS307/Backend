@@ -1,11 +1,13 @@
 import os
 from utils import dbConn
-from sqlalchemy import create_engine, Column, ForeignKey
+from sqlalchemy import create_engine, Column, ForeignKey, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.types import Integer, String
 from sqlalchemy.dialects.mysql import BOOLEAN
 import re
 import hashlib
+import time
+from datetime import datetime
 
 Base = declarative_base()
 
@@ -122,6 +124,7 @@ class experiments(Base):
     gender = Column(BOOLEAN, nullable=True)
     skill = Column(Integer, default=0)
     country = Column(String(50), nullable=True)
+    deadline = Column(DateTime, nullable = True)
     isPhone = Column(BOOLEAN, default=0, nullable=False)
     def __init__(self,user_id, resource_id, price, batchSize, description, dataset_id, gender=None, country=None, skill=None):
         self.user_id = user_id
