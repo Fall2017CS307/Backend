@@ -159,9 +159,12 @@ class datasetHandler:
 
         hasBatch = session.query(models.batch).filter(models.batch.experiment_id == experiment.resource_id).filter(models.batch.user_id == user.id).first()
         if(hasBatch is not None):
-            ret['errors'] = []
-            ret['errors'].append("User already has a batch")
-            return apiDecorate(ret, 400, "User already has a batch")
+            #ret['errors'] = []
+            #ret['errors'].append("User already has a batch")
+
+            ret['batch_id'] = hasBatch.id
+            return apiDecorate(ret, 200, "Success")
+
         batch = session.query(models.batch).filter(models.batch.experiment_id == experiment.resource_id).filter(models.batch.user_id==None).first()
         if(batch is None):
             ret['errors'] = []
@@ -199,7 +202,7 @@ class datasetHandler:
             ret['errors'] = []
             ret['errors'].append("Invalid dataset")
             return apiDecorate(ret, 400, "Invalid dataset")
-        
+
         # price, description, multiSelect=None
         session = dbConn().get_session(dbConn().get_engine())
         user = session.query(models.User).filter(models.User.id == user_id).first()
@@ -233,7 +236,7 @@ class datasetHandler:
             try:
                 skill = int(skill)
             except:
-                skill = 0 
+                skill = 0
         if(multiSelect is None):
             multiSelect = 1
 
