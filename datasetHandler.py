@@ -18,6 +18,7 @@ import imghdr
 import csv
 import json
 
+
 class datasetHandler:
     DREAM_username = os.environ.get('dream_user') or "none"
     DREAM_secretKey = os.environ.get('dream_secretKey') or "none"
@@ -83,6 +84,17 @@ class datasetHandler:
 
     @staticmethod
     def getExperiments(user_id):
+        argArray = {}
+        if request.method == "GET":
+            argArray = request.args
+
+        elif request.method  == "POST":
+            if(len(request.form) > 0):
+                argArray = request.form
+            else:
+                print request.get_data()
+                argArray = json.loads(request.data)
+        sort = argArray.get("sort")
         session = dbConn().get_session(dbConn().get_engine())
         user = session.query(models.User).filter(models.User.id == user_id).first()
         if(user is None):
@@ -91,7 +103,10 @@ class datasetHandler:
             return apiDecorate(ret, 400, "Invalid User")
 
         ret = {}
-        batches = session.query(models.batch.experiment_id).filter(models.batch.user_id==None).distinct(models.batch.experiment_id).all()
+        if(sort is None):
+            batches = session.query(models.batch.experiment_id).filter(models.batch.user_id==None).distinct(models.batch.experiment_id).all()
+        elif(sort == "compensation"):
+             batches = session.query(models.batch.experiment_id).filter(models.batch.user_id==None).distinct(models.batch.experiment_id).order_by(desc(models.batch.price)).all()
         experiments = []
         for batch in batches:
             experiment = session.query(models.experiments).filter(models.experiments.resource_id==batch[0]).first()
@@ -145,9 +160,12 @@ class datasetHandler:
 
         hasBatch = session.query(models.batch).filter(models.batch.experiment_id == experiment.resource_id).filter(models.batch.user_id == user.id).first()
         if(hasBatch is not None):
-            ret['errors'] = []
-            ret['errors'].append("User already has a batch")
-            return apiDecorate(ret, 400, "User already has a batch")
+            #ret['errors'] = []
+            #ret['errors'].append("User already has a batch")
+
+            ret['batch_id'] = hasBatch.id
+            return apiDecorate(ret, 200, "Success")
+
         batch = session.query(models.batch).filter(models.batch.experiment_id == experiment.resource_id).filter(models.batch.user_id==None).first()
         if(batch is None):
             ret['errors'] = []
@@ -185,7 +203,7 @@ class datasetHandler:
             ret['errors'] = []
             ret['errors'].append("Invalid dataset")
             return apiDecorate(ret, 400, "Invalid dataset")
-        
+
         # price, description, multiSelect=None
         session = dbConn().get_session(dbConn().get_engine())
         user = session.query(models.User).filter(models.User.id == user_id).first()
@@ -209,6 +227,13 @@ class datasetHandler:
         gender = argArray.get("gender")
         country = argArray.get("country")
         skill = argArray.get("skill")
+        dt = argArray.get("deadline")
+
+        if(dt is not None):
+            deadline = datetime.datetime.strptime(dt, '%Y/%m/%d')
+        else:
+            deadline = None
+
         if(gender is not None and len(gender) <1):
             gender = None
         if(country is not None and len(country) < 1):
@@ -219,7 +244,7 @@ class datasetHandler:
             try:
                 skill = int(skill)
             except:
-                skill = 0 
+                skill = 0
         if(multiSelect is None):
             multiSelect = 1
 
@@ -265,7 +290,7 @@ class datasetHandler:
             ret['errors'] = []
             ret['errors'].append("Batch problems")
             return apiDecorate(ret, 400, "Batch problems")
-        experiment = models.experiments(user.id, randName, price, len(batches), description, dataset.id, gender, country, skill)
+        experiment = models.experiments(user.id, randName, price, len(batches), description, dataset.id, gender, country, skill, deadline)
         session.add(experiment)
         session.commit()
         botoConn = boto.connect_s3(datasetHandler.DREAM_key, datasetHandler.DREAM_secretKey, host="objects-us-west-1.dream.io")
