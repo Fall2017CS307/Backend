@@ -328,10 +328,32 @@ class datasetHandler:
 
 
     @staticmethod
-    def rateBatch(batch_id):
+    def rateBatch(batch_id, rating):
+        ret = {}
         session = dbConn().get_session(dbConn().get_engine())
         curBatch = session.query(models.batch).filter(models.batch.id == batch_id).first()
-        pass
+        if(curBatch is None):
+            ret['errors'] = []
+            ret['errors'].append("Invalid batch")
+            return apiDecorate(ret, 400, "Invalid batch")
+        if(curBatch.isCompleted == False):
+            ret['errors'] = []
+            ret['errors'].append("Batch not annotated")
+            return apiDecorate(ret, 400, "Batch not annotated")
+
+        if(curBatch.rating is not None):
+            ret['errors'] = []
+            ret['errors'].append("Batch already has rating")
+            return apiDecorate(ret, 400, "Batch already has rating")
+        
+        if(rating > 5):
+            rating = 5
+        elif(rating < 0):
+            rating = 0
+        curBatch.rating = rating
+        session.commit()
+        return apiDecorate(ret, 200, "success")
+
 '''
 if __name__ == '__main__':
     botoConn = boto.connect_s3(datasetHandler.DREAM_key, datasetHandler.DREAM_secretKey, host="objects-us-west-1.dream.io")
