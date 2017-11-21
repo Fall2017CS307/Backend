@@ -142,7 +142,8 @@ class batch(Base):
     experiment_id = Column(String(60),ForeignKey("experiments.resource_id"))
     local_resource_id = Column(Integer, default=0, nullable=False)
     isCompleted = Column(BOOLEAN, default=0, nullable=False)
-
+    rating = Column(Integer, nullable=True)
+    
     def __init__(self,experiment_id, local_resource_id):
         self.experiment_id = experiment_id
         self.local_resource_id = local_resource_id

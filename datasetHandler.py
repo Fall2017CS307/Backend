@@ -302,7 +302,11 @@ class datasetHandler:
         session.commit()
 
 
-
+    @staticmethod
+    def rateBatch(batch_id):
+        session = dbConn().get_session(dbConn().get_engine())
+        curBatch = session.query(models.batch).filter(models.batch.id == batch_id).first()
+        pass
 '''
 if __name__ == '__main__':
     botoConn = boto.connect_s3(datasetHandler.DREAM_key, datasetHandler.DREAM_secretKey, host="objects-us-west-1.dream.io")
