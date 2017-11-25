@@ -139,7 +139,7 @@ class userHandler():
         if(curUser.isPhone == True):
             session.delete(userValidate)
         session.commit()
-        return "User Validated"
+        return apiDecorate(ret, 200, "Verified")
 
     def verify_phone(self,key):
         ret = {}
@@ -164,7 +164,7 @@ class userHandler():
         if(curUser.isEmail == True):
             session.delete(userValidate)
         session.commit()
-        return "User Validated"
+        return apiDecorate(ret, 200, "Verified")
 
     def getUser(self,id):
         session = dbConn().get_session(dbConn().get_engine())
