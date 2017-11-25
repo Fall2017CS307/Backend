@@ -13,6 +13,8 @@ SERVER_ADDRESS = "http://127.0.0.1:5000"
 email_new = "ramyaksingh@yahoo.com"
 password_new = "secret"
 
+
+
 def test_db_config():
 	try:
 		engine = db.dbConn().get_engine()
@@ -31,8 +33,78 @@ def test_table_creation():
 
 ## call functions to suppirt test cases
 
-def test_emailVerification():
-	SERVER_ADDRESS + "/api/verify/email" + email/
+def test_emailAndPhoneVerification():
+
+
+
+
+	test_user = models.User(first_name = 'test_first', last_name='test_last', password="test_password", email='test_email@email.com', phone='1234567890')
+	session = dbConn().get_session(dbConn().get_engine())
+	session.add(test_user)
+	session.commit()
+
+	randNum = randint(1,10000)
+	randNum2 = randint(1,10000)
+	timeStamp = datetime.now()
+	emailKey = str(randNum) + str(timeStamp.year) + str(timeStamp.month) + str(timeStamp.day) + str(timeStamp.hour) + str(timeStamp.minute) + str(timeStamp.second) + "_" + str(randNum2)
+	contentText = "Go to the link to verify " + "http://datonate.com:5000/api/verify/email/"+emailKey
+
+
+	## Generate Phone key
+
+
+	randNum = randint(1,10000)
+	randNum2 = randint(1,10000)
+	timeStamp = datetime.now()
+	phoneKey = str(randNum) + str(timeStamp.year) + str(timeStamp.month) + str(timeStamp.day) + str(timeStamp.hour) + str(timeStamp.minute) + str(timeStamp.second) + "__" + str(randNum2)
+	textContent="Go to the link to verify " + "http://datonate.com:5000/api/verify/phone/"+phoneKey
+	message = notification.sendText(user.phone,textContent)
+	regUser = session.query(models.User).filter(models.User.email == user.email).first()
+
+	userValidate = models.user_validate(test_user.id, emailKey, phoneKey)
+	session.add(userValidate)
+	session.commit()
+
+
+	jsonStr, suc = call_email(emailKey)
+
+	if(suc):
+		checkUser = session.query(models.user).filter(models.user.id == test_user.id).first()
+		if(checkUser.isEmail == False):
+			assert False, "Says this it verified, but verification wasn't performed inside user table"
+
+	if(not suc):
+		assert False. "Failed verify email for valid key"
+
+	jsonStr, suc = call_email('100')
+
+	if(suc):
+		assert False. "Verified with wrong key"
+
+
+
+	jsonStr, suc = call_phone(phoneKey)
+
+	if(suc):
+		checkUser = session.query(models.user).filter(models.user.id == test_user.id).first()
+		if(checkUser.isPhone == False):
+			assert False, "Says this it verified, but verification wasn't performed inside user table"
+
+	if(not suc):
+		assert False. "Failed verify phone for valid key"
+
+	jsonStr, suc = call_phone('100')
+
+	if(suc):
+		assert False. "Verified with wrong key"
+
+
+
+	remValidate = session.query(models.userValidate).filter(models.user.id == test_user.id).first()
+	session.delete(remValidate)
+	session.delete(test_user)
+	session.commit()
+
 
 def test_registration():
 
@@ -91,6 +163,20 @@ def call_registration(firstname, lastname, email, password, phone):
 	"/api/register?email="+email+"/api/register?password="+password+"/api/register?phone="+phone).read()
 	jsonArr = json.loads(jsonString)
 
+	if(jsonArr['status']!=200):
+		return str(jsonArr), False
+	return str(jsonArr), True
+
+def call_email(key):
+	jsonString  = urllib2.urlopen(SERVER_ADDRESS + "/api/verify/email" + key).read()
+	jsonArr = json.loads(jsonString)
+	if(jsonArr['status']!=200):
+		return str(jsonArr), False
+	return str(jsonArr), True
+
+def call_phone(key):
+	jsonString  = urllib2.urlopen(SERVER_ADDRESS + "/api/verify/phone" + key).read()
+	jsonArr = json.loads(jsonString)
 	if(jsonArr['status']!=200):
 		return str(jsonArr), False
 	return str(jsonArr), True
