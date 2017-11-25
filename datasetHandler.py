@@ -84,6 +84,7 @@ class datasetHandler:
 
     @staticmethod
     def getExperiments(user_id):
+        ret = {}
         argArray = {}
         if request.method == "GET":
             argArray = request.args
@@ -112,10 +113,12 @@ class datasetHandler:
             experiment = session.query(models.experiments).filter(models.experiments.resource_id==batch[0]).first()
             if((experiment.gender != user.gender) or (experiment.country!=user.country) or (experiment.skill > user.skill)):
                 continue
+            datas = session.query(models.dataset).filter(models.dataset.id == experiment.dataset_id).first()
             tempExperiment = {}
             tempExperiment['id'] = experiment.id
             tempExperiment['price'] = experiment.price
             tempExperiment['description'] = experiment.description
+            tempExperiment['isMedia'] = datas.isMedia
             experiments.append(tempExperiment)
 
         ret['experiments'] = experiments

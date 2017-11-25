@@ -194,7 +194,7 @@ class fileHandler():
         session = dbConn().get_session(dbConn().get_engine())
         session.add(data)
         session.commit()
-        return "true " + randName 
+        return apiDecorate(ret, 200, "Verified")
 
 @staticmethod
 def retDatasets(user_id):
