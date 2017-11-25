@@ -139,8 +139,10 @@ class datasetHandler:
             userBatch = {}
             userBatch['id'] = batch.id
             experiment = session.query(models.experiments).filter(models.experiments.resource_id == batch.experiment_id).first()
+            datas = session.query(models.dataset).filter(models.dataset.id == experiment.dataset_id).first()
             userBatch['description'] = experiment.description
             userBatch['price'] = experiment.price
+            userBatch['isMedia'] = datas.isMedia
             userBatches.append(userBatch)
         ret['batches'] = userBatches
         return apiDecorate(ret, 200, "Success")
