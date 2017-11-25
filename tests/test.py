@@ -7,13 +7,22 @@ import utils.dbConn as db
 import models
 import json
 import urllib2
+from random import randint
+from datetime import datetime
+
 
 SERVER_ADDRESS = "http://127.0.0.1:5000"
 
 email_new = "ramyaksingh@yahoo.com"
 password_new = "secret"
 
+test_first = 'First'
+test_last = 'Last'
+test_password = 'secret'
+test_email = 'test_email@email.com'
+test_phone = '3126469650'
 
+session = db.dbConn().get_session(db.dbConn().get_engine())
 
 def test_db_config():
 	try:
@@ -33,15 +42,48 @@ def test_table_creation():
 
 ## call functions to suppirt test cases
 
+def test_registration():
+
+	email_existing = "achellan@purdue.edu"
+	password_existing = "secret"
+
+
+	firstname = "xyz"
+	lastname = "abc"
+	phone = "9876543210"
+
+
+	jsonStr, suc = call_registration(firstname, lastname, email_existing, password_existing, phone)
+
+	if(suc):
+		assert False, "Registration successful for already existing user \n Response + " +jsonStr
+
+
+	jsonStr, suc = call_registration(test_first, test_last, test_email, test_password, test_phone)
+
+	if(not suc):
+		assert False, "Registration unsuccessful for new user with valid information \n Response + " +jsonStr
+
+
+	#tempUser = session.query(models.User).filter(models.User.email == test_email).first()
+	#tempUserValidate = session.query(models.user_validate).filter(models.user_validate.id == tempUser.id).first()
+	#session.delete(tempUserValidate)
+	#session.commit()
+
 def test_emailAndPhoneVerification():
 
+	#test_user = models.User(first_name = test_first, last_name=test_last, password=test_password, email=test_email, phone=test_phone)
+	#session = db.dbConn().get_session(db.dbConn().get_engine())
+	#session.add(test_user)
+	#session.commit()
 
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_user = session.query(models.User).filter(models.User.email == test_email).first()
+	if(test_user is None):
+		assert False, "Test User doesnt exist"
 
-
-	test_user = models.User(first_name = 'test_first', last_name='test_last', password="test_password", email='test_email@email.com', phone='1234567890')
-	session = dbConn().get_session(dbConn().get_engine())
-	session.add(test_user)
-	session.commit()
+	print(test_user)
+	'''
 
 	randNum = randint(1,10000)
 	randNum2 = randint(1,10000)
@@ -58,83 +100,62 @@ def test_emailAndPhoneVerification():
 	timeStamp = datetime.now()
 	phoneKey = str(randNum) + str(timeStamp.year) + str(timeStamp.month) + str(timeStamp.day) + str(timeStamp.hour) + str(timeStamp.minute) + str(timeStamp.second) + "__" + str(randNum2)
 	textContent="Go to the link to verify " + "http://datonate.com:5000/api/verify/phone/"+phoneKey
-	message = notification.sendText(user.phone,textContent)
-	regUser = session.query(models.User).filter(models.User.email == user.email).first()
+	'''
+	userValidateTemp = session.query(models.user_validate).filter(models.user_validate.id == test_user.id).first()
+	print(test_user)
+	print(userValidateTemp)
+	emailKey = session.query(models.user_validate).filter(models.user_validate.id == test_user.id).first().emailCode
+	phoneKey = session.query(models.user_validate).filter(models.user_validate.id == test_user.id).first().phoneCode
+	#regUser = session.query(models.User).filter(models.User.email == user.email).first()
 
-	userValidate = models.user_validate(test_user.id, emailKey, phoneKey)
-	session.add(userValidate)
-	session.commit()
+	#userValidate = models.user_validate(test_user.id, emailKey, phoneKey)
+	#session.add(userValidate)
+	#session.commit()
 
 
 	jsonStr, suc = call_email(emailKey)
 
 	if(suc):
-		checkUser = session.query(models.user).filter(models.user.id == test_user.id).first()
+		session = db.dbConn().get_session(db.dbConn().get_engine())
+		checkUser = session.query(models.User).filter(models.User.id == test_user.id).first()
+		print(checkUser)
+		print(checkUser.isEmail)
 		if(checkUser.isEmail == False):
 			assert False, "Says this it verified, but verification wasn't performed inside user table"
 
 	if(not suc):
-		assert False. "Failed verify email for valid key"
+		assert False, "Failed verify email for valid key"
 
 	jsonStr, suc = call_email('100')
 
 	if(suc):
-		assert False. "Verified with wrong key"
+		assert False, "Verified with wrong key"
 
 
 
 	jsonStr, suc = call_phone(phoneKey)
 
 	if(suc):
-		checkUser = session.query(models.user).filter(models.user.id == test_user.id).first()
+		session = db.dbConn().get_session(db.dbConn().get_engine())
+		checkUser = session.query(models.User).filter(models.User.id == test_user.id).first()
 		if(checkUser.isPhone == False):
 			assert False, "Says this it verified, but verification wasn't performed inside user table"
 
 	if(not suc):
-		assert False. "Failed verify phone for valid key"
+		assert False, "Failed verify phone for valid key"
 
 	jsonStr, suc = call_phone('100')
 
 	if(suc):
-		assert False. "Verified with wrong key"
+		assert False, "Verified with wrong key"
 
 
 
-	remValidate = session.query(models.userValidate).filter(models.user.id == test_user.id).first()
-	session.delete(remValidate)
-	session.delete(test_user)
-	session.commit()
-
-
-def test_registration():
-
-	email_existing = "achellan@purdue.edu"
-	password_existing = "secret"
-
-	firstname = "xyz"
-	lastname = "abc"
-	phone = "9876543210"
-
-
-	jsonStr, suc = call_registration(firstname, lastname, email_existing, password_existing, phone)
-
-	if(suc):
-		assert False,"Registration successful for already existing user \n Response + " +jsonStr
-
-
-	jsonStr, suc = call_registration(firstname, lastname, email_new, password_new, phone)
-
-	if(not suc):
-		assert False,"Registration unsuccessful for new user with valid information \n Response + " +jsonStr
-
-
-	tempUser = session.query(models.User).filter(models.User.email == email_new).first()
-	session.delete(tempUser)
-	session.commit()
 
 def test_login():
-	email = "achellan@purdue.edu"
-	password = "secret"
+	email = test_email
+	password = test_password
+
 	invalidEmail = "invalid@datonate.com"
 	invalidPassword="InvalidPassword"
 
@@ -151,6 +172,11 @@ def test_login():
 		assert False,"Login Success for invalid password \n Response + " + str(jsonArr)
 
 
+def test_user_delete():
+	delUser = session.query(models.User).filter(models.User.email == test_email).first()
+	session.delete(delUser)
+	session.commit()
+
 def call_login(email, password):
 	jsonString  = urllib2.urlopen(SERVER_ADDRESS+"/api/login?email="+email+"&password="+password).read()
 	jsonArr = json.loads(jsonString)
@@ -159,8 +185,7 @@ def call_login(email, password):
 	return str(jsonArr), True
 
 def call_registration(firstname, lastname, email, password, phone):
-	jsonString  = urllib2.urlopen(SERVER_ADDRESS+"/api/register?firstname="+firstname+"/api/register?lastname="+lastname+
-	"/api/register?email="+email+"/api/register?password="+password+"/api/register?phone="+phone).read()
+	jsonString  = urllib2.urlopen(SERVER_ADDRESS+"/api/register?firstname="+firstname+"&lastname="+lastname+"&email="+email+"&password="+password+"&phone="+phone).read()
 	jsonArr = json.loads(jsonString)
 
 	if(jsonArr['status']!=200):
@@ -168,14 +193,14 @@ def call_registration(firstname, lastname, email, password, phone):
 	return str(jsonArr), True
 
 def call_email(key):
-	jsonString  = urllib2.urlopen(SERVER_ADDRESS + "/api/verify/email" + key).read()
+	jsonString  = urllib2.urlopen(SERVER_ADDRESS + "/api/verify/email/" + key).read()
 	jsonArr = json.loads(jsonString)
 	if(jsonArr['status']!=200):
 		return str(jsonArr), False
 	return str(jsonArr), True
 
 def call_phone(key):
-	jsonString  = urllib2.urlopen(SERVER_ADDRESS + "/api/verify/phone" + key).read()
+	jsonString  = urllib2.urlopen(SERVER_ADDRESS + "/api/verify/phone/" + key).read()
 	jsonArr = json.loads(jsonString)
 	if(jsonArr['status']!=200):
 		return str(jsonArr), False
