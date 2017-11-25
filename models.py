@@ -126,7 +126,8 @@ class experiments(Base):
     country = Column(String(50), nullable=True)
     deadline = Column(DateTime, nullable = True)
     isPhone = Column(BOOLEAN, default=0, nullable=False)
-    def __init__(self,user_id, resource_id, price, batchSize, description, dataset_id, gender=None, country=None, skill=None):
+
+    def __init__(self,user_id, resource_id, price, batchSize, description, dataset_id, gender=None, country=None, skill=None, deadline=None):
         self.user_id = user_id
         self.resource_id = resource_id
         self.price = price
@@ -136,6 +137,7 @@ class experiments(Base):
         self.gender=gender
         self.country=country
         self.skill=skill
+        self.deadline = deadline
 
 class batch(Base):
     __tablename__ = 'batches'
@@ -146,7 +148,7 @@ class batch(Base):
     local_resource_id = Column(Integer, default=0, nullable=False)
     isCompleted = Column(BOOLEAN, default=0, nullable=False)
     rating = Column(Integer, nullable=True)
-    
+
     def __init__(self,experiment_id, local_resource_id):
         self.experiment_id = experiment_id
         self.local_resource_id = local_resource_id
