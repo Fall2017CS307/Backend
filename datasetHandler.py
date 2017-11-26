@@ -18,7 +18,6 @@ import imghdr
 import csv
 import json
 
-
 class datasetHandler:
     DREAM_username = os.environ.get('dream_user') or "none"
     DREAM_secretKey = os.environ.get('dream_secretKey') or "none"
@@ -359,10 +358,21 @@ class datasetHandler:
         session.commit()
         return apiDecorate(ret, 200, "success")
 
-'''
-if __name__ == '__main__':
-    botoConn = boto.connect_s3(datasetHandler.DREAM_key, datasetHandler.DREAM_secretKey, host="objects-us-west-1.dream.io")
-    bucket = botoConn.get_bucket(datasetHandler.DREAM_Bucket, validate=False)
-    for o in bucket.list():
-        o.set_acl('public-read')
-'''
+    @staticmethod
+    def getPastExperiments(user_id):
+        ret = {}
+        session = dbConn().get_session(dbConn().get_engine())
+        myBatches = session.query(models.batch).filter(models.batch.user_id == user_id)
+        batches = myBatches.all()
+        listBatch = []
+        for curBatch in batches:
+            exp = session.query(models.experiments).filter(models.experiments.resource_id == curBatch.experiment_id).first()
+            batchData = {}
+            batchData['description'] = exp.description
+            if(curBatch.rating is None):
+                batchData['rating'] = -1
+            else:
+                batchData['rating'] = curBatch.rating
+            listBatch.append(batchData)
+        ret['batches'] = listBatch
+        return apiDecorate(ret, 200, 'success')
