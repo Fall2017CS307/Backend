@@ -175,23 +175,79 @@ def test_login():
 
 def test_upload():
 
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_user = session.query(models.User).filter(models.User.email == test_email).first()
+
+	validImageFile = 'temp1.zip'
+
+	jsonStr, suc = call_upload_image(validImageFile)
+
+	if(suc):
 		session = db.dbConn().get_session(db.dbConn().get_engine())
+		checkSet = session.query(models.dataset).filter(models.dataset.user_id == test_user.id)[0]
+
+		if(checkSet is None):
+			assert False, "Says that user doesn't exist while it does"
+		if(checkSet.isMedia == False):
+			assert False, "Dataset is not saved as media despite uploading a zip folder contaning images"
+
+	if(not suc):
+		assert False, "Dataset didn't upload for valid dataset"
 
 
-	 	validFile = 'tests/temp1.zip'
+	#session.delete(checkSet)
+	#session.commit()
+	validTextFile = 'document_example.zip'
 
-		jsonStr, suc = call_upload(validFile)
+	jsonStr, suc = call_upload_text(validTextFile)
 
-		if(suc):
-			checkSet = session.query(models.dataset).filter(models.dataset.user_id == test_user.id).first()
-			if(checkSet.isMedia == False):
-				assert False, "Dataset is not saved as media despite uploading a zip folder contaning images"
-		if(not suc):
-			assert False, "Dataset didn't upload for valid dataset"
+	if(suc):
+		session = db.dbConn().get_session(db.dbConn().get_engine())
+		checkSet = session.query(models.dataset).filter(models.dataset.user_id == test_user.id)[1]
+
+		if(checkSet is None):
+			assert False, "Says that user doesn't exist while it does"
+		if(checkSet.isMedia == True):
+			assert False, "Dataset is saved as text despite uploading a zip folder contaning text"
+
+	if(not suc):
+		assert False, "Dataset didn't upload for valid dataset"
+
+	'''
+	TESTING FOR INVALID DATASETS
+	'''
+
+	validImageFile = 'temp1.zip'
+
+	jsonStr, suc = call_upload_text(validImageFile)
+
+	if(suc):
+		assert False, "Dataset uploaded for invalid dataset"
+
+
+	validTextFile = 'document_example.zip'
+
+	jsonStr, suc = call_upload_image(validTextFile)
+
+	if(suc):
+		assert False, "Dataset uploaded for invalid dataset"
+
+
+def test_get_datasets():
+
+
+
 
 
 
 def test_user_delete():
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	delUser = session.query(models.User).filter(models.User.email == test_email).first()
+	checkSet = session.query(models.dataset).filter(models.dataset.user_id == delUser.id).all()
+	for temp in checkSet:
+		session.delete(temp)
+		session.commit()
+	session = db.dbConn().get_session(db.dbConn().get_engine())
 	delUser = session.query(models.User).filter(models.User.email == test_email).first()
 	session.delete(delUser)
 	session.commit()
@@ -225,16 +281,32 @@ def call_phone(key):
 		return str(jsonArr), False
 	return str(jsonArr), True
 
-def call_upload(file):
+def call_upload_image(file):
 
 	session = db.dbConn().get_session(db.dbConn().get_engine())
 	checkUser = session.query(models.User).filter(models.User.email == test_email).first()
 
 	temp = str(checkUser.id)
-
-	with open(file, 'rb') as f: r = requests.post('http://127.0.0.1:5000/api/' + temp + '/upload/0', files={file: f})
-
-	if(r == 200):
+	f = open(file, 'rb')
+	print(f)
+	r = requests.post('http://127.0.0.1:5000/api/' + temp + '/upload/1', files={'file': f})
+	jsonArr = json.loads(str(r.text))
+	if(jsonArr['status'] == 200):
 		return r.text, True
 	else:
-				return r.text, False
+		return r.text, False
+
+def call_upload_text(file):
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	checkUser = session.query(models.User).filter(models.User.email == test_email).first()
+
+	temp = str(checkUser.id)
+	f = open(file, 'rb')
+	print(f)
+	r = requests.post('http://127.0.0.1:5000/api/' + temp + '/upload/0', files={'file': f})
+	jsonArr = json.loads(str(r.text))
+	if(jsonArr['status'] == 200):
+		return r.text, True
+	else:
+		return r.text, False
