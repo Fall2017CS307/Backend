@@ -51,7 +51,7 @@ This file documents the use of the api v1.0
 
 ## Spec sheet for url : /api/getExperiments/<int:user_id>
 
- This endpoint gets the available experiments to the user. 
+ This endpoint gets the available experiments to the user.
 
 ### Properties spec sheet
 
@@ -67,9 +67,9 @@ This file documents the use of the api v1.0
 | version | NULL | **Always** | The version of the api| String |
 | status | NULL | **Always** | The status code for the api call | Integer  |
 | Response | NULL | **Always** | The response string returned from the api | String |
-| experiments | NULL | **Sometimes**| Dictionary of experiment details | Dictionary | 
+| experiments | NULL | **Sometimes**| Dictionary of experiment details | Dictionary |
 | id | experiments | **ALWAYS** | Id of the experiment | Int |
-| price | experiments | **ALWAYS** | Price of the experiment | Int | 
+| price | experiments | **ALWAYS** | Price of the experiment | Int |
 | description | experiments | **ALWAYS** | Description of the experiment | String |
 | isMedia | experiments | **ALWAYS** | True - Image, False - Text | True/False  |
 
@@ -91,16 +91,16 @@ This file documents the use of the api v1.0
 | version | NULL | **Always** | The version of the api| String |
 | status | NULL | **Always** | The status code for the api call | Integer  |
 | Response | NULL | **Always** | The response string returned from the api | String |
-| batches | NULL | **Sometimes**| Dictionary of batches details | Dictionary | 
+| batches | NULL | **Sometimes**| Dictionary of batches details | Dictionary |
 | id | experiments | **ALWAYS** | Id of the experiment | Int |
-| price | experiments | **ALWAYS** | Price of the experiment | Int | 
+| price | experiments | **ALWAYS** | Price of the experiment | Int |
 | description | experiments | **ALWAYS** | Description of the experiment | String |
 | isMedia | experiments | **ALWAYS** | True - Image, False - Text | True/False  |
 
 
 ## Spec sheet for url : /api/<int:batch_id>/getBatch
 
- This endpoint gets the batch with that batch id. 
+ This endpoint gets the batch with that batch id.
 
 ### Properties spec sheet
 
@@ -116,12 +116,37 @@ This file documents the use of the api v1.0
 | version | NULL | **Always** | The version of the api| String | NULL |
 | status | NULL | **Always** | The status code for the api call | Integer  |
 | Response | NULL | **Always** | The response string returned from the api | String |
-| description | NULL | **ALWAYS** | Description of the experiment | String | 
-| files | NULL | **Sometimes** | Returned if, media is image, contains the name and links for the image | Dictionary | 
-| name | files | **ALWAYS** | Name | String | 
-| link | files | **ALWAYS** | link | String | 
+| description | NULL | **ALWAYS** | Description of the experiment | String |
+| files | NULL | **Sometimes** | Returned if, media is image, contains the name and links for the image | Dictionary |
+| name | files | **ALWAYS** | Name | String |
+| link | files | **ALWAYS** | link | String |
 | data | NULL | **Sometimes** | Returned if, media is text, contains the data in json | String |
+
+
+## Spec sheet for url : /api/getPastExperiments/<int:user_id>
+
+ This endpoint gets the available experiments to the user.
+
+### Properties spec sheet
+
+| Parameter name | Required/Optional | use case | Accepted Value |
+| :---: | :---: | :---: | :---: |
+| user_id | **Required** | The user id of the user | int  |
+
+### Response spec sheet
+
+| Parameter name | Parent | Always/Sometimes | use case | Accepted Value |
+| :---: | :---: | :---: | :---: | :---: |
+| api |  NULL | **Always** | "Datonate" | String |
+| version | NULL | **Always** | The version of the api| String |
+| status | NULL | **Always** | The status code for the api call | Integer  |
+| Response | NULL | **Always** | The response string returned from the api | String |
+| batches | NULL | **Sometimes**| Dictionary of batch details | Dictionary |
+| rating | batches | **ALWAYS** | Rating of the experiment | Int |
+| description | batches | **ALWAYS** | Description of the experiment | String |
+
 # Web Specific Routes
+ 
  
  
  
