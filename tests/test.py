@@ -9,6 +9,8 @@ import json
 import urllib2
 from random import randint
 from datetime import datetime
+from flask import request
+import requests
 
 
 SERVER_ADDRESS = "http://127.0.0.1:5000"
@@ -171,6 +173,23 @@ def test_login():
 	if(suc):
 		assert False,"Login Success for invalid password \n Response + " + str(jsonArr)
 
+def test_upload():
+
+		session = db.dbConn().get_session(db.dbConn().get_engine())
+
+
+	 	validFile = 'tests/temp1.zip'
+
+		jsonStr, suc = call_upload(validFile)
+
+		if(suc):
+			checkSet = session.query(models.dataset).filter(models.dataset.user_id == test_user.id).first()
+			if(checkSet.isMedia == False):
+				assert False, "Dataset is not saved as media despite uploading a zip folder contaning images"
+		if(not suc):
+			assert False, "Dataset didn't upload for valid dataset"
+
+
 
 def test_user_delete():
 	delUser = session.query(models.User).filter(models.User.email == test_email).first()
@@ -205,3 +224,17 @@ def call_phone(key):
 	if(jsonArr['status']!=200):
 		return str(jsonArr), False
 	return str(jsonArr), True
+
+def call_upload(file):
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	checkUser = session.query(models.User).filter(models.User.email == test_email).first()
+
+	temp = str(checkUser.id)
+
+	with open(file, 'rb') as f: r = requests.post('http://127.0.0.1:5000/api/' + temp + '/upload/0', files={file: f})
+
+	if(r == 200):
+		return r.text, True
+	else:
+				return r.text, False

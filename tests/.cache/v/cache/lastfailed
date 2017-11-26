@@ -2,5 +2,6 @@
   "test.py::TestDatabase::()": true, 
   "test.py::TestDatabase::()::test_environment": true, 
   "test.py::TestDatabase::()::test_table_setup": true, 
+  "test.py::test_upload": true, 
   "test_db_config.py::test_answer": true
 }
