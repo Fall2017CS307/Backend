@@ -235,10 +235,110 @@ def test_upload():
 
 def test_get_datasets():
 
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_user = session.query(models.User).filter(models.User.email == test_email).first()
 
+	jsonStr, suc = call_getDatasets(test_user.id)
+	jsonArr = json.loads(jsonStr)
 
+	imageResourceName = jsonArr['datasets'][0]['resource_name']
+	textResource = jsonArr['datasets'][1]['resource_name']
 
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	imageDataset = session.query(models.dataset).filter(models.dataset.resource_id == imageResourceName).first()
 
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	checkUser = session.query(models.User).filter(models.User.id == imageDataset.user_id).first()
+
+	if(suc):
+		if(imageDataset is None):
+			assert False,"Doesn't return dataset despite returning success message"
+		if(checkUser is None):
+			assert False, "Returns success message but corresponding user is invalid"
+
+	if(not suc):
+		assert False, "Couldn't return any of existing datasets"
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	textDataset = session.query(models.dataset).filter(models.dataset.resource_id == textResource).first()
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	checkUser = session.query(models.User).filter(models.User.id == textDataset.user_id).first()
+
+	if(suc):
+		if(textDataset is None):
+			assert False,"Doesn't return dataset despite returning success message"
+		if(checkUser is None):
+			assert False, "Returns success message but corresponding user is invalid"
+
+	if(not suc):
+		assert False, "Couldn't return any of existing datasets"
+
+def test_makeDatasetPublic():
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_user = session.query(models.User).filter(models.User.email == test_email).first()
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	checkSet = session.query(models.dataset).filter(models.dataset.user_id == test_user.id)[0]
+
+	jsonStr, suc = call_publicDatasets(test_user.id, checkSet.id)
+
+	if(suc):
+		session = db.dbConn().get_session(db.dbConn().get_engine())
+		checkSet = session.query(models.dataset).filter(models.dataset.user_id == test_user.id)[0]
+		if(checkSet.isPublic == False):
+			assert False, "Says that dataset was made public but it is still private"
+
+	if(not suc):
+		assert False, "Couldn't make dataset public for valid query"
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	checkSet = session.query(models.dataset).filter(models.dataset.user_id == test_user.id)[1]
+
+	jsonStr, suc = call_publicDatasets(test_user.id, checkSet.id)
+
+	if(suc):
+		session = db.dbConn().get_session(db.dbConn().get_engine())
+		checkSet = session.query(models.dataset).filter(models.dataset.user_id == test_user.id)[0]
+		if(checkSet.isPublic == False):
+			assert False, "Says that dataset was made public but it is still private"
+
+	if(not suc):
+		assert False, "Couldn't make dataset public for valid query"
+
+def test_makeDatasetPrivate():
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_user = session.query(models.User).filter(models.User.email == test_email).first()
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	checkSet = session.query(models.dataset).filter(models.dataset.user_id == test_user.id)[0]
+
+	jsonStr, suc = call_privateDatasets(test_user.id, checkSet.id)
+
+	if(suc):
+		session = db.dbConn().get_session(db.dbConn().get_engine())
+		checkSet = session.query(models.dataset).filter(models.dataset.user_id == test_user.id)[0]
+		if(checkSet.isPublic == True):
+			assert False, "Says that dataset was made private but it is still public"
+
+	if(not suc):
+		assert False, "Couldn't make dataset private for valid query"
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	checkSet = session.query(models.dataset).filter(models.dataset.user_id == test_user.id)[1]
+
+	jsonStr, suc = call_privateDatasets(test_user.id, checkSet.id)
+
+	if(suc):
+		session = db.dbConn().get_session(db.dbConn().get_engine())
+		checkSet = session.query(models.dataset).filter(models.dataset.user_id == test_user.id)[0]
+		if(checkSet.isPublic == True):
+			assert False, "Says that dataset was made private but it is still private"
+
+	if(not suc):
+		assert False, "Couldn't make dataset private for valid query"
 
 def test_user_delete():
 	session = db.dbConn().get_session(db.dbConn().get_engine())
@@ -310,3 +410,25 @@ def call_upload_text(file):
 		return r.text, True
 	else:
 		return r.text, False
+
+def call_getDatasets(userID):
+
+	jsonString  = urllib2.urlopen(SERVER_ADDRESS + '/api/' + str(userID) + '/datasets').read()
+	jsonArr = json.loads(jsonString)
+	if(jsonArr['status']!=200):
+		return jsonString, False
+	return jsonString, True
+
+def call_publicDatasets(user, dataset):
+	jsonString  = urllib2.urlopen(SERVER_ADDRESS + '/api/' + str(user) + '/dataset/public/' + str(dataset) + '/').read()
+	jsonArr = json.loads(jsonString)
+	if(jsonArr['status']!=200):
+		return str(jsonArr), False
+	return str(jsonArr), True
+
+def call_privateDatasets(user, dataset):
+	jsonString  = urllib2.urlopen(SERVER_ADDRESS + '/api/' + str(user) + '/dataset/private/' + str(dataset) + '/').read()
+	jsonArr = json.loads(jsonString)
+	if(jsonArr['status']!=200):
+		return str(jsonArr), False
+	return str(jsonArr), True
