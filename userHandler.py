@@ -278,7 +278,8 @@ class userHandler():
             ret['errors'].append("Invalid dataset or dataset is not public")
             return apiDecorate(ret, 400, "Invalid dataset or dataset is not public")
 
-        copyDataset = models.dataset(user.id, file_name=dataset.file_name, resource_id=dataset.resource_id)
+        #copyDataset = models.dataset(user.id, file_name=dataset.file_name, resource_id=dataset.resource_id)
+        copyDataset = models.dataset(user.id, isMedia=dataset.isMedia, resource_id=dataset.resource_id)
         session.add(copyDataset)
         session.commit()
         copyDataset.isPublic = True

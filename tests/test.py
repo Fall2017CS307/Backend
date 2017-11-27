@@ -371,6 +371,39 @@ def test_allPublicDatasets():
 	if(not suc):
 		assert False, "Failed to retrieve all public datasets"
 
+'''
+Make a call.
+Check is dataset with proper user id exists.
+Go to dataset table, check user ID and see if it matches now"
+'''
+
+def test_copyPublicDataset():
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_user = session.query(models.User).filter(models.User.email == test_email).first()
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	dataset = session.query(models.dataset).filter(models.dataset.isPublic == True).first()
+
+	jsonStr, suc = call_copyPublicDataset(test_user.id, dataset.id)
+
+	if(not suc):
+		assert False, "Failed to copy all public datasets"
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	datasets = session.query(models.dataset).filter(models.dataset.isPublic == True).all()
+
+	flag = False
+
+	for temp in datasets:
+		if(temp.user_id == test_user.id):
+			flag = True
+
+	if(flag == False):
+		assert False, "Returns success message but doesn't copy the datasets into given user ID"
+
+
+
 
 def test_user_delete():
 	session = db.dbConn().get_session(db.dbConn().get_engine())
@@ -472,3 +505,10 @@ def call_allPublicDatasets():
 	if(jsonArr['status']!=200):
 		return str(jsonArr), False
 	return jsonString, True
+
+def call_copyPublicDataset(user, dataset):
+	jsonString  = urllib2.urlopen(SERVER_ADDRESS + '/api/' + str(user) + '/dataset/copy/' + str(dataset) + '/').read()
+	jsonArr = json.loads(jsonString)
+	if(jsonArr['status']!=200):
+		return str(jsonArr), False
+	return str(jsonArr), True
