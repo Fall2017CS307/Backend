@@ -9,7 +9,7 @@ from random import randint
 from utils.notification import notification
 import json
 class userHandler():
-    
+
     @staticmethod
     def getUserById(user_id):
         session = dbConn().get_session(dbConn().get_engine())
@@ -49,7 +49,7 @@ class userHandler():
             ret['errors'].append("Incorect User/password combinator or the user is not registered")
             return apiDecorate(ret, 400, "Invalid and/or expired key supplied")
         ret['id'] = user.id
-        
+
         return apiDecorate(ret, 200, "Login Accepted")
 
     def register(self):
@@ -256,7 +256,7 @@ class userHandler():
         returnDict = []
         for data in datasets:
             returnData = {}
-            returnData['file_name'] = data.file_name
+            #returnData['file_name'] = data.file_name
             returnData['resource_name'] = data.resource_id
             returnDict.append(returnData)
         ret['datasets'] = returnDict

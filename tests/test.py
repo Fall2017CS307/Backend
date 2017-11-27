@@ -340,6 +340,38 @@ def test_makeDatasetPrivate():
 	if(not suc):
 		assert False, "Couldn't make dataset private for valid query"
 
+def test_allPublicDatasets():
+
+ 	session = db.dbConn().get_session(db.dbConn().get_engine())
+	datasets = session.query(models.dataset).filter(models.dataset.isPublic == True).all()
+
+	jsonStr, suc = call_allPublicDatasets()
+	jsonArr = json.loads(jsonStr)
+
+
+	if(suc):
+		for s in jsonArr['datasets']:
+
+			session = db.dbConn().get_session(db.dbConn().get_engine())
+		   	temp = session.query(models.dataset).filter(models.dataset.resource_id == s['resource_name']).first()
+
+			flag = False
+
+			for t in datasets:
+				x = t.resource_id + " " + temp.resource_id
+				#assert False, x
+				if(t.resource_id == temp.resource_id):
+					flag = True
+
+			if(flag == False):
+
+				assert False, "Gives success but fails to retrieve some/all of the datasets"
+
+
+	if(not suc):
+		assert False, "Failed to retrieve all public datasets"
+
+
 def test_user_delete():
 	session = db.dbConn().get_session(db.dbConn().get_engine())
 	delUser = session.query(models.User).filter(models.User.email == test_email).first()
@@ -432,3 +464,11 @@ def call_privateDatasets(user, dataset):
 	if(jsonArr['status']!=200):
 		return str(jsonArr), False
 	return str(jsonArr), True
+
+def call_allPublicDatasets():
+	jsonString  = urllib2.urlopen(SERVER_ADDRESS + '/api/datasets/public').read()
+	print(jsonString)
+	jsonArr = json.loads(jsonString)
+	if(jsonArr['status']!=200):
+		return str(jsonArr), False
+	return jsonString, True
