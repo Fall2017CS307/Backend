@@ -95,6 +95,14 @@ class datasetHandler:
                 print request.get_data()
                 argArray = json.loads(request.data)
         sort = argArray.get("sort")
+        levelFilter = argArray.get("education")
+        if(levelFilter is not None and len(str(levelFilter)) < 0):
+            levelFilter = None
+        if(levelFilter is not None):
+            try:
+                levelFilter = int(levelFilter)
+            except:
+                levelFilter = None
         session = dbConn().get_session(dbConn().get_engine())
         user = session.query(models.User).filter(models.User.id == user_id).first()
         if(user is None):
@@ -103,14 +111,15 @@ class datasetHandler:
             return apiDecorate(ret, 400, "Invalid User")
 
         ret = {}
-        if(sort is None):
-            batches = session.query(models.batch.experiment_id).filter(models.batch.user_id==None).distinct(models.batch.experiment_id).all()
-        elif(sort == "compensation"):
-             batches = session.query(models.batch.experiment_id).filter(models.batch.user_id==None).distinct(models.batch.experiment_id).order_by(desc(models.batch.price)).all()
+        batches = session.query(models.batch.experiment_id).filter(models.batch.user_id==None).distinct(models.batch.experiment_id)
+        if(sort == "compensation"):
+             batches = batches.order_by(desc(models.batch.price))
+        batches = batches.all()
+        
         experiments = []
         for batch in batches:
             experiment = session.query(models.experiments).filter(models.experiments.resource_id==batch[0]).first()
-            if((experiment.gender != user.gender) or (experiment.country!=user.country) or (experiment.skill > user.skill)):
+            if((experiment.gender != user.gender) or (experiment.country!=user.country) or (experiment.skill > user.skill) or (levelFilter is not None and experiment.skill != levelFilter)):
                 continue
             datas = session.query(models.dataset).filter(models.dataset.id == experiment.dataset_id).first()
             tempExperiment = {}
@@ -306,7 +315,7 @@ class datasetHandler:
             k = Key(bucket)
             k.key = "e_"+randName+"/"+str(batchCount)+".json"
             sent = k.set_contents_from_string(batchJson, cb=None, md5=None, reduced_redundancy=False)
-            batch = models.batch(randName, batchCount)
+            batch = models.batch(randName, batchCount, len(batch))
             session.add(batch)
             session.commit()
             batchCount+=1
@@ -376,3 +385,47 @@ class datasetHandler:
             listBatch.append(batchData)
         ret['batches'] = listBatch
         return apiDecorate(ret, 200, 'success')
+        
+    @staticmethod
+    def submitBatchRowImage(batch_id):
+        ret = {}
+        if request.method == "GET":
+            argArray = request.args
+
+        elif request.method  == "POST":
+            if(len(request.form) > 0):
+                argArray = request.form
+            else:
+                print request.get_data()
+                argArray = json.loads(request.data)
+        
+        imageText = argArray.get('imageText') or ""
+        imageData = argArray.get('imageData') or ""
+        if(len(imageText) == 0 or len(imageData) == 0 ):
+            return apiDecorate(ret,400,"Image data/text not present")
+        session = dbConn().get_session(dbConn().get_engine())
+        
+        curBatch = session.query(models.batch).filter(models.batch.id == batch_id).first()
+        if(curBatch is None):
+            return apiDecorate(ret, 400, 'Invalid batch id')
+        curExperiment = session.query(models.experiments).filter(models.experiments.resource_id == curBatch.experiment_id).first()
+        curDataset = session.query(models.dataset).filter(models.dataset.id == curExperiment.dataset_id).first()
+        if(curDataset.isMedia == False):
+            return apiDecorate(ret,400,"Invalid submission route called")
+        if(curBatch.curAnnotation == curBatch.totalAnnotation):
+            return apiDecorate(ret,400,"Batch finished annotating")
+        batchData = {}
+        batchData['text'] = imageText
+        batchData['data'] = imageData
+        botoConn = boto.connect_s3(datasetHandler.DREAM_key, datasetHandler.DREAM_secretKey, host="objects-us-west-1.dream.io")
+        bucket = botoConn.get_bucket(datasetHandler.DREAM_Bucket, validate=False)
+        k = Key(bucket)
+        k.key = "e_"+curExperiment.resource_id+"/"+str(curBatch.local_resource_id)+"_"+str(curBatch.curAnnotation)+".json"
+        print "key "+k.key
+        sent = k.set_contents_from_string(json.dumps(batchData), cb=None, md5=None, reduced_redundancy=False)
+        curBatch.curAnnotation +=1
+        session.commit()
+        return apiDecorate(ret, 200, "Success")
+        
+        
+        

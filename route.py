@@ -38,5 +38,6 @@ app.add_url_rule('/api/<int:batch_id>/rateBatch/<int:rating>','/api/batch_id/rat
 
 app.add_url_rule('/api/getPastExperiments/<int:user_id>', '/api/getPastExperiments/user_id', datasetHandler.getPastExperiments, methods=['POST', 'GET'])
 
+app.add_url_rule('/api/submitBatchRowImage/<int:batch_id>', '/api/submitBatchRowImage/batch_id', datasetHandler.submitBatchRowImage, methods=['POST', 'GET'])
 if __name__ == '__main__':
     app.run(debug=True,host="0.0.0.0")
