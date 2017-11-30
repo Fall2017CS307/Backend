@@ -427,5 +427,27 @@ class datasetHandler:
         session.commit()
         return apiDecorate(ret, 200, "Success")
         
+    @staticmethod
+    def getExperimentProgress(experiment_id):
+        ret = {}
+        session = dbConn().get_session(dbConn().get_engine())
+        experiment = session.query(models.experiments).filter(models.experiments.id == experiment_id).first()
+        if(experiment is None):
+            return apiDecorate(ret, 400,"Invalid id")
+            
+        totalAnnotateCount = 0
+        curAnnotateCount = 0
+        print(experiment.resource_id)
+        batches = session.query(models.batch).filter(models.batch.experiment_id == experiment.resource_id).all()
+        for batch in batches :
+            totalAnnotateCount += batch.totalAnnotation
+            curAnnotateCount += batch.curAnnotation
+        
+        ret['total'] = totalAnnotateCount
+        ret['completed'] = curAnnotateCount
+        
+        return apiDecorate(ret, 200, "Success")
+            
+        
         
         
