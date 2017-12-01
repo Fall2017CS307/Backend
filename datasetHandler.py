@@ -116,7 +116,7 @@ class datasetHandler:
         if(sort == "compensation"):
              batches = batches.order_by(desc(models.batch.price))
         batches = batches.all()
-        
+
         experiments = []
         for batch in batches:
             experiment = session.query(models.experiments).filter(models.experiments.resource_id==batch[0]).first()
@@ -246,7 +246,7 @@ class datasetHandler:
         notifTime = argArray.get("notifTime")
         allocateTime = argArray.get("allocateTime")
         title = argArray.get("title")
-        
+
         if(maxTime is not None):
             try:
                 if len(maxTime) == 0 or maxTime == 0:
@@ -264,7 +264,7 @@ class datasetHandler:
                     notifTime = int(notifTime)
             except:
                 return apiDecorate(ret, 400, "Notification time is not integer")
-            
+
         if(allocateTime is not None):
             try:
                 if len(allocateTime) == 0 or maxTime == 0:
@@ -273,11 +273,11 @@ class datasetHandler:
                     allocateTime = int(allocateTime)
             except:
                 return apiDecorate(ret, 400, "Allocate time is not integer")
-        
-        
+
+
         if(notifTime is not None and allocateTime is None):
             return apiDecorate(ret, 400, "Allocation time needs to be specified if, notification time is specified")
-        
+
         if(notifTime is not None):
             if notifTime < 0 or notifTime > maxTime:
                 return apiDecorate(ret, 400, "Notification time incorrect")
@@ -427,7 +427,6 @@ class datasetHandler:
             listBatch.append(batchData)
         ret['batches'] = listBatch
         return apiDecorate(ret, 200, 'success')
-
         
     @staticmethod
     def submitBatchRowImage(batch_id):
@@ -441,13 +440,13 @@ class datasetHandler:
             else:
                 print request.get_data()
                 argArray = json.loads(request.data)
-        
+
         imageText = argArray.get('imageText') or ""
         imageData = argArray.get('imageData') or ""
         if(len(imageText) == 0 or len(imageData) == 0 ):
             return apiDecorate(ret,400,"Image data/text not present")
         session = dbConn().get_session(dbConn().get_engine())
-        
+
         curBatch = session.query(models.batch).filter(models.batch.id == batch_id).first()
         if(curBatch is None):
             return apiDecorate(ret, 400, 'Invalid batch id')
@@ -469,7 +468,7 @@ class datasetHandler:
         curBatch.curAnnotation +=1
         session.commit()
         return apiDecorate(ret, 200, "Success")
-        
+
     @staticmethod
     def getExperimentProgress(user_id):
         ret = {}
@@ -493,9 +492,5 @@ class datasetHandler:
             curExp['price'] = experiment.price
             curExp['description'] = experiment.description
             ret['experiments'].append(curExp)
-        
+
         return apiDecorate(ret, 200, "Success")
-            
-        
-        
-        
