@@ -116,7 +116,7 @@ class datasetHandler:
         if(sort == "compensation"):
              batches = batches.order_by(desc(models.batch.price))
         batches = batches.all()
-        
+
         experiments = []
         for batch in batches:
             experiment = session.query(models.experiments).filter(models.experiments.resource_id==batch[0]).first()
@@ -386,9 +386,8 @@ class datasetHandler:
             listBatch.append(batchData)
         ret['batches'] = listBatch
         return apiDecorate(ret, 200, 'success')
-<<<<<<< HEAD
-=======
-        
+
+
     @staticmethod
     def submitBatchRowImage(batch_id):
         ret = {}
@@ -401,13 +400,13 @@ class datasetHandler:
             else:
                 print request.get_data()
                 argArray = json.loads(request.data)
-        
+
         imageText = argArray.get('imageText') or ""
         imageData = argArray.get('imageData') or ""
         if(len(imageText) == 0 or len(imageData) == 0 ):
             return apiDecorate(ret,400,"Image data/text not present")
         session = dbConn().get_session(dbConn().get_engine())
-        
+
         curBatch = session.query(models.batch).filter(models.batch.id == batch_id).first()
         if(curBatch is None):
             return apiDecorate(ret, 400, 'Invalid batch id')
@@ -429,7 +428,7 @@ class datasetHandler:
         curBatch.curAnnotation +=1
         session.commit()
         return apiDecorate(ret, 200, "Success")
-        
+
     @staticmethod
     def getExperimentProgress(user_id):
         ret = {}
@@ -453,10 +452,5 @@ class datasetHandler:
             curExp['price'] = experiment.price
             curExp['description'] = experiment.description
             ret['experiments'].append(curExp)
-        
+
         return apiDecorate(ret, 200, "Success")
-            
-        
-        
-        
->>>>>>> a8af342ee43df69fc444afd10e42136627f10a5f
