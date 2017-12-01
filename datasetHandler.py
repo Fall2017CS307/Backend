@@ -279,7 +279,7 @@ class datasetHandler:
             return apiDecorate(ret, 400, "Allocation time needs to be specified if, notification time is specified")
         
         if(notifTime is not None):
-            if notifTime < 0 or notifTime > allocateTime:
+            if notifTime < 0 or notifTime > maxTime:
                 return apiDecorate(ret, 400, "Notification time incorrect")
         '''
         if(dt is not None):
