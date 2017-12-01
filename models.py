@@ -111,7 +111,7 @@ class dataset(Base):
         self.user_id = user_id
         self.isMedia = isMedia
         self.resource_id = resource_id
-        self.title = title
+        '''self.title = title'''
 
 class experiments(Base):
     __tablename__ = 'experiments'
@@ -133,7 +133,7 @@ class experiments(Base):
     notifTime = Column(Integer, nullable=True)
     allocateTime = Column(Integer, nullable=True)
     maxTime = Column(Integer, nullable=True)
-    
+
     def __init__(self,user_id,title, resource_id, price, batchSize, description, dataset_id, gender=None, country=None, skill=None,maxTime = None,notifTime = None, allocateTime = None ):
         self.user_id = user_id
         self.resource_id = resource_id
@@ -145,7 +145,7 @@ class experiments(Base):
         self.country=country
         self.skill=skill
         '''self.deadline = deadline'''
-        self.title = title
+        #self.title = title
         self.maxTime = maxTime
         self.notifTime = notifTime
         self.allocateTime = allocateTime
@@ -165,6 +165,7 @@ class batch(Base):
     deadline = Column(DateTime, nullable = True)
     notifDeadline = Column(DateTime, nullable = True)
     
+
     def __init__(self,experiment_id, local_resource_id, batchSize):
         self.experiment_id = experiment_id
         self.local_resource_id = local_resource_id
