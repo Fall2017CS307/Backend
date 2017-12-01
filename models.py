@@ -129,6 +129,7 @@ class experiments(Base):
     country = Column(String(50), nullable=True)
     deadline = Column(DateTime, nullable = True)
     isPhone = Column(BOOLEAN, default=0, nullable=False)
+    annotateCount = Column(Integer, default=0, nullable=False)
 
     def __init__(self,user_id, resource_id, price, batchSize, description, dataset_id, gender=None, country=None, skill=None, deadline=None):
         self.user_id = user_id
@@ -152,10 +153,13 @@ class batch(Base):
     local_resource_id = Column(Integer, default=0, nullable=False)
     isCompleted = Column(BOOLEAN, default=0, nullable=False)
     rating = Column(Integer, nullable=True)
-
-    def __init__(self,experiment_id, local_resource_id):
+    curAnnotation = Column(Integer, default=0, nullable=False)
+    totalAnnotation = Column(Integer, default=0, nullable=False)
+    
+    def __init__(self,experiment_id, local_resource_id, batchSize):
         self.experiment_id = experiment_id
         self.local_resource_id = local_resource_id
+        self.totalAnnotation = batchSize
 
 def setupTables():
     engine=dbConn.dbConn().get_engine()
