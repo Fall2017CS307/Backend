@@ -120,8 +120,9 @@ class datasetHandler:
         experiments = []
         for batch in batches:
             experiment = session.query(models.experiments).filter(models.experiments.resource_id==batch[0]).first()
-            if((experiment.gender != user.gender) or (experiment.country!=user.country) or (experiment.skill > user.skill) or (levelFilter is not None and experiment.skill != levelFilter)):
-                continue
+            if((experiment.gender != None and experiment.gender != user.gender) or (experiment.country != None and experiment.country!=user.country) or (user.skill < experiment.skill) or (levelFilter is not None and experiment.skill != levelFilter)):
+                print "User skill " + str(user.skill) + "experiment.skill " + str(experiment.skill) + "\n"
+                continue 
             datas = session.query(models.dataset).filter(models.dataset.id == experiment.dataset_id).first()
             tempExperiment = {}
             tempExperiment['id'] = experiment.id
