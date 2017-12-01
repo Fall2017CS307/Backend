@@ -6,6 +6,7 @@ from jsonReturn import apiDecorate
 import models
 from utils.dbConn import dbConn
 from datetime import datetime
+#import datetime
 from random import randint
 from utils.notification import notification
 from userHandler import userHandler
@@ -281,7 +282,8 @@ class datasetHandler:
                 return apiDecorate(ret, 400, "Notification time incorrect")
         
         if(dt is not None):
-            deadline = datetime.datetime.strptime(dt, '%Y/%m/%d')
+            #deadline = datetime.datetime.strptime(dt, '%Y/%m/%d')
+            deadline = datetime.strptime(dt, '%Y/%m/%d')
         else:
             deadline = None
         
@@ -397,7 +399,7 @@ class datasetHandler:
             ret['errors'] = []
             ret['errors'].append("Batch already has rating")
             return apiDecorate(ret, 400, "Batch already has rating")
-        
+
         if(rating > 5):
             rating = 5
         elif(rating < 0):
@@ -424,6 +426,8 @@ class datasetHandler:
             listBatch.append(batchData)
         ret['batches'] = listBatch
         return apiDecorate(ret, 200, 'success')
+<<<<<<< HEAD
+=======
         
     @staticmethod
     def submitBatchRowImage(batch_id):
@@ -495,3 +499,4 @@ class datasetHandler:
         
         
         
+>>>>>>> a8af342ee43df69fc444afd10e42136627f10a5f

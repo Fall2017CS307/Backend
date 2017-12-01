@@ -371,12 +371,6 @@ def test_allPublicDatasets():
 	if(not suc):
 		assert False, "Failed to retrieve all public datasets"
 
-'''
-Make a call.
-Check is dataset with proper user id exists.
-Go to dataset table, check user ID and see if it matches now"
-'''
-
 def test_copyPublicDataset():
 
 	session = db.dbConn().get_session(db.dbConn().get_engine())
@@ -402,6 +396,51 @@ def test_copyPublicDataset():
 	if(flag == False):
 		assert False, "Returns success message but doesn't copy the datasets into given user ID"
 
+def test_createExperiment():
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_user = session.query(models.User).filter(models.User.email == test_email).first()
+
+	jsonStr, suc = call_createExperiment(test_user.id)
+
+	if(not suc):
+		assert False, "Experiment could not be created"
+
+	assert False, jsonStr
+
+def test_getExperiments():
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_user = session.query(models.User).filter(models.User.email == test_email).first()
+
+	jsonStr, suc = call_getExperiments(test_user.id)
+
+	jsonArr = json.loads(jsonStr)
+	if(not suc):
+		assert False, "Could not receive all experiment"
+
+	#assert False, jsonStr
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+
+	if(len(jsonArr['experiments']) != session.query(models.experiments).count()):
+		assert False, "Gives success message but doesn't return all experiments"
+'''
+def test_assignBatch():
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_user = session.query(models.User).filter(models.User.email == test_email).first()
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_experiment = session.query(models.experiments).filter(models.experiments.user_id == test_user.id).first()
+
+	jsonStr, suc = call_assignBatch(test_user.id, test_experiment.id)
+
+	if(not suc):
+		assert False, "Did not assign batch"
+
+	jsonArr = json.loads(jsonStr)
+'''
 
 
 
@@ -512,3 +551,80 @@ def call_copyPublicDataset(user, dataset):
 	if(jsonArr['status']!=200):
 		return str(jsonArr), False
 	return str(jsonArr), True
+
+def call_createExperiment(user):
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	checkUser = session.query(models.User).filter(models.User.email == test_email).first()
+	checkUser.balance = 2000
+	session.commit()
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	checkSet = session.query(models.dataset).filter(models.dataset.user_id == user).first()
+
+	temp = 0
+	if(checkSet.isMedia):
+		temp = 1
+
+	jsonString = urllib2.urlopen(SERVER_ADDRESS + '/api/' + str(user) + '/create?dataset_id=' + str(checkSet.id) + '&batchSize=1&user_id=' + str(user) + '&price=1&description=IMAGE&isPhone=3126469650&datasetType=' + str(temp))
+	assert False, jsonString
+	jsonArr = json.loads(jsonString)
+
+	#assert False, jsonArr['status']
+ 	if(jsonArr['status'] == 200):
+ 		return jsonString, True
+ 	else:
+ 		return jsonString, False
+
+
+def call_getExperiments(user):
+
+	jsonString  = urllib2.urlopen(SERVER_ADDRESS + '/api/getExperiments/' + str(user)).read()
+
+	jsonArr = json.loads(jsonString)
+
+	print(jsonString)
+	if(jsonArr['status']!=200):
+		return str(jsonArr), False
+	return jsonString, True
+
+'''
+def call_assignBatch(user, experiment):
+
+	jsonString  = urllib2.urlopen(SERVER_ADDRESS + '/api/' + str(user) + '/assign/' + str(experiment)).read()
+	jsonArr = json.loads(jsonString)
+
+	print(jsonString)
+
+	if(jsonArr['status']!=200):
+		return str(jsonArr), False
+	return jsonString, True
+
+def call_batchList(user):
+
+
+	jsonString  = urllib2.urlopen(SERVER_ADDRESS + '/api/' + str(user) + '/batchList').read()
+
+	jsonArr = json.loads(jsonString)
+
+	#print(jsonString)
+	if(jsonArr['status']!=200):
+		return str(jsonArr), False
+	return jsonString, True
+
+'''
+
+#session = db.dbConn().get_session(db.dbConn().get_engine())
+#checkUser = session.query(models.User).filter(models.User.email == 'singh351@purdue.edu').first()
+
+#call_getExperiments(checkUser.id)
+
+'''
+session = db.dbConn().get_session(db.dbConn().get_engine())
+test_user = session.query(models.User).filter(models.User.email == 'singh351@purdue.edu').first()
+
+session = db.dbConn().get_session(db.dbConn().get_engine())
+test_experiment = session.query(models.experiments).filter(models.experiments.id == 1).first()
+
+call_assignBatch(test_user.id, test_experiment.id)
+'''

@@ -101,6 +101,7 @@ class dataset(Base):
     __tablename__ = 'dataset'
 
     id = Column(Integer, primary_key=True)
+    title = Column(String, nullable=False)
     user_id = Column(Integer,ForeignKey("user.id"))
     resource_id = Column(String(60))
     isMedia = Column(BOOLEAN, default=0, nullable=False)
@@ -110,11 +111,13 @@ class dataset(Base):
         self.user_id = user_id
         self.isMedia = isMedia
         self.resource_id = resource_id
+        self.title = title
 
 class experiments(Base):
     __tablename__ = 'experiments'
 
     id = Column(Integer, primary_key=True)
+    title = Column(String, nullable=False)
     user_id = Column(Integer,ForeignKey("user.id"))
     resource_id =  Column(String(60),unique=True, nullable=False)
     price = Column(Integer, default=0, nullable=False)
@@ -139,6 +142,7 @@ class experiments(Base):
         self.country=country
         self.skill=skill
         self.deadline = deadline
+        self.title = title
 
 class batch(Base):
     __tablename__ = 'batches'
