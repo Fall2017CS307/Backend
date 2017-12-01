@@ -467,7 +467,7 @@ def test_batchList():
 	if(test_batch.id != jsonArr['batches'][0]['id']):
 
 		assert False, "Returned success but didn't return a correct list of batches"
-
+'''
 def test_getBatch():
 
 
@@ -479,10 +479,137 @@ def test_getBatch():
 
 	#assert False, int(test_batch.id)
 
-	jsonStr, suc = call_getExperiments(int(test_batch.id))
+	jsonStr, suc = call_getBatch(int(test_batch.id))
 	#jsonArr = json.loads(jsonStr)
 
-	assert False, jsonString
+	assert False, jsonStr
+'''
+
+def test_rateBatch():
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_user = session.query(models.User).filter(models.User.email == test_email).first()
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_batch = session.query(models.batch).filter(models.batch.user_id == test_user.id).first()
+	test_batch.isCompleted = True
+	session.commit()
+
+	jsonStr, suc = call_rateBatch(test_batch.id, 4)
+
+	if(not suc):
+		assert False, "Could not rate participant"
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_batch = session.query(models.batch).filter(models.batch.user_id == test_user.id).first()
+
+	if(test_batch.rating != 4):
+		assert False, "Returned success but didn't input correct value"
+
+def test_getPastExperiments():
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_user = session.query(models.User).filter(models.User.email == test_email).first()
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_batch = session.query(models.batch).filter(models.batch.user_id == test_user.id).first()
+
+	jsonStr, suc = call_getPastExperiments(test_user.id)
+
+	if(not suc):
+		assert False, "Failed to return past experiments"
+
+	if(test_batch.isCompleted == False):
+		assert False, "Returned success but didn't provide all prior experiments"
+
+def test_getExperimentsProgress():
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_user = session.query(models.User).filter(models.User.email == test_email).first()
+
+	#session = db.dbConn().get_session(dbConn().get_engine())
+	experiment = session.query(models.experiments).filter(models.experiments.user_id == test_user.id).first()
+
+	checkBatch = session.query(models.batch).filter(models.batch.experiment_id == experiment.resource_id).all()
+	#assert False, len(checkBatch)
+	com = 0
+
+	for batch in checkBatch:
+		if(batch.curAnnotation == batch.totalAnnotation):
+			com = com + 1;
+
+
+	jsonStr, suc = call_getExperimentProgress(test_user.id)
+	jsonArr = json.loads(jsonStr)
+
+	if(not suc):
+		assert False, "Could not return progress"
+
+	if(jsonArr['experiments'][0]['completed'] != com):
+		assert False, "Returns succes but fails to return correct progress"
+
+def test_getBatchToRate():
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_user = session.query(models.User).filter(models.User.email == test_email).first()
+
+	#session = db.dbConn().get_session(dbConn().get_engine())
+	experiment = session.query(models.experiments).filter(models.experiments.user_id == test_user.id).first()
+	checkBatch = session.query(models.batch).filter(models.batch.experiment_id == experiment.resource_id).first()
+	#checkBatch.isCompleted = True
+	session.commit()
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_user = session.query(models.User).filter(models.User.email == test_email).first()
+
+	#session = db.dbConn().get_session(dbConn().get_engine())
+	experiment = session.query(models.experiments).filter(models.experiments.user_id == test_user.id).first()
+
+	jsonStr, suc = call_getBatchToRate(experiment.id)
+	jsonArr = json.loads(jsonStr)
+
+	if(not suc):
+		assert False, "Does not return a batch to rate"
+
+	'''
+	t = str(checkBatch.isCompleted) + " " + str(experiment.resource_id) + " " + str(checkBatch.experiment_id) + " " +  str(len(jsonArr['batches']))
+	assert False, t
+	'''
+	if(len(jsonArr['batches']) != 0):
+		assert False, "Returns wrong number of batches"
+
+def test_getExperimentDetails():
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_user = session.query(models.User).filter(models.User.email == test_email).first()
+
+	#session = db.dbConn().get_session(dbConn().get_engine())
+	experiment = session.query(models.experiments).filter(models.experiments.user_id == test_user.id).first()
+	jsonStr, suc = call_getExperimentDetails(experiment.id)
+
+	if(not suc):
+		assert False, "Doesn't return experiment details"
+
+	jsonArr = json.loads(jsonStr)
+
+	if(jsonArr['id'] != experiment.id):
+		assert False, "Returns success but experiment details are wrong"
+
+def test_getUserBalance():
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_user = session.query(models.User).filter(models.User.email == test_email).first()
+
+	jsonStr, suc = call_getUserBalance(test_user.id)
+
+	jsonArr = json.loads(jsonStr)
+
+	if(not suc):
+		assert False, "Fails to return balance"
+
+	if(jsonArr['balance'] != test_user.balance):
+		assert False, "Returns success message but balance shown is not correct"
+
 
 def test_user_delete():
 	session = db.dbConn().get_session(db.dbConn().get_engine())
@@ -676,16 +803,88 @@ def call_getBatch(batch_id):
 
 	#jsonArr = json.loads(jsonString)
 
-	assert False, jsonString
+	#assert False, jsonString
 	#print(jsonString)
 	if(jsonArr['status']!=200):
 		return str(jsonArr), False
 	return jsonString, True
 
-#session = db.dbConn().get_session(db.dbConn().get_engine())
-#checkUser = session.query(models.User).filter(models.User.email == 'singh351@purdue.edu').first()
 
-#call_getExperiments(checkUser.id)
+def call_getBatch(batch_id):
+
+	jsonString  = urllib2.urlopen(SERVER_ADDRESS + '/api/' + str(batch_id) + '/getBatch').read()
+
+	jsonArr = json.loads(jsonString)
+
+	#assert False, jsonString
+	#print(jsonString)
+	if(jsonArr['status']!=200):
+		return str(jsonArr), False
+	return jsonString, True
+
+def call_rateBatch(batch_id, rating):
+
+	jsonString  = urllib2.urlopen(SERVER_ADDRESS + '/api/' + str(batch_id) + '/rateBatch/' + str(rating)).read()
+
+	jsonArr = json.loads(jsonString)
+
+	#assert False, jsonString
+	#print(jsonString)
+	if(jsonArr['status']!=200):
+		return str(jsonArr), False
+	return jsonString, True
+
+def call_getPastExperiments(user_id):
+
+	jsonString  = urllib2.urlopen(SERVER_ADDRESS + '/api/getPastExperiments/' + str(user_id)).read()
+
+	jsonArr = json.loads(jsonString)
+
+	#assert False, jsonString
+	#print(jsonString)
+	if(jsonArr['status']!=200):
+		return str(jsonArr), False
+	return jsonString, True
+
+def call_getExperimentProgress(user_id):
+
+	jsonString  = urllib2.urlopen(SERVER_ADDRESS + '/api/getExperimentProgress/' + str(user_id)).read()
+
+	jsonArr = json.loads(jsonString)
+
+	if(jsonArr['status']!=200):
+		return str(jsonArr), False
+	return jsonString, True
+
+def call_getBatchToRate(experiment_id):
+
+	jsonString  = urllib2.urlopen(SERVER_ADDRESS + '/api/getBatchToRate/' + str(experiment_id)).read()
+
+	jsonArr = json.loads(jsonString)
+
+	if(jsonArr['status']!=200):
+		return str(jsonArr), False
+	return jsonString, True
+
+def call_getExperimentDetails(experiment_id):
+
+	jsonString  = urllib2.urlopen(SERVER_ADDRESS + '/api/getExperimentDetails/' + str(experiment_id)).read()
+
+	jsonArr = json.loads(jsonString)
+
+	if(jsonArr['status']!=200):
+		return str(jsonArr), False
+	return jsonString, True
+
+def call_getUserBalance(user_id):
+
+	jsonString  = urllib2.urlopen(SERVER_ADDRESS + '/api/userBalance/' + str(user_id)).read()
+
+	jsonArr = json.loads(jsonString)
+
+	if(jsonArr['status']!=200):
+		return str(jsonArr), False
+	return jsonString, True
 
 '''
 session = db.dbConn().get_session(db.dbConn().get_engine())
