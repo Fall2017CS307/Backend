@@ -6,6 +6,7 @@ from jsonReturn import apiDecorate
 import models
 from utils.dbConn import dbConn
 from datetime import datetime
+#import datetime
 from random import randint
 from utils.notification import notification
 from userHandler import userHandler
@@ -234,7 +235,8 @@ class datasetHandler:
         dt = argArray.get("deadline")
 
         if(dt is not None):
-            deadline = datetime.datetime.strptime(dt, '%Y/%m/%d')
+            #deadline = datetime.datetime.strptime(dt, '%Y/%m/%d')
+            deadline = datetime.strptime(dt, '%Y/%m/%d')
         else:
             deadline = None
 
@@ -349,7 +351,7 @@ class datasetHandler:
             ret['errors'] = []
             ret['errors'].append("Batch already has rating")
             return apiDecorate(ret, 400, "Batch already has rating")
-        
+
         if(rating > 5):
             rating = 5
         elif(rating < 0):
