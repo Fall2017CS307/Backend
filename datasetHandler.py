@@ -159,6 +159,10 @@ class datasetHandler:
             userBatch['description'] = experiment.description
             userBatch['price'] = experiment.price
             userBatch['isMedia'] = datas.isMedia
+            if(batch.deadline != None):
+                userBatch['due'] = str(batch.deadline)
+            else:
+                 userBatch['due'] = "No Deadline"
             userBatches.append(userBatch)
         ret['batches'] = userBatches
         return apiDecorate(ret, 200, "Success")
@@ -196,10 +200,9 @@ class datasetHandler:
         batch.user_id = user.id
         ret['batch_id'] = batch.id
         if(experiment.maxTime != None):
-            print "here"
             batch.deadline = datetime.now() + timedelta(hours=experiment.maxTime)
             if(experiment.notifTime != None):
-                batch.notifDeadline = datetime.now() + timedelta(hours=experiment.notifTime)
+                batch.notifDeadline = datetime.now() + timedelta(hours=(experiment.maxTime - experiment.notifTime))
         session.commit()
         return apiDecorate(ret, 200, "Success")
 
