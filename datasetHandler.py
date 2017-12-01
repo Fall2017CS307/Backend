@@ -115,6 +115,7 @@ class datasetHandler:
         batches = session.query(models.batch.experiment_id).filter(models.batch.user_id==None).distinct(models.batch.experiment_id)
         if(sort == "compensation"):
              batches = batches.order_by(desc(models.batch.price))
+        
         batches = batches.all()
 
         experiments = []
@@ -122,7 +123,7 @@ class datasetHandler:
             experiment = session.query(models.experiments).filter(models.experiments.resource_id==batch[0]).first()
             if((experiment.gender != None and experiment.gender != user.gender) or (experiment.country != None and experiment.country!=user.country) or (user.skill < experiment.skill) or (levelFilter is not None and experiment.skill != levelFilter)):
                 print "User skill " + str(user.skill) + "experiment.skill " + str(experiment.skill) + "\n"
-                continue 
+                continue
             datas = session.query(models.dataset).filter(models.dataset.id == experiment.dataset_id).first()
             tempExperiment = {}
             tempExperiment['id'] = experiment.id
@@ -409,7 +410,25 @@ class datasetHandler:
         curBatch.rating = rating
         session.commit()
         return apiDecorate(ret, 200, "success")
-
+    
+    @staticmethod
+    def getBatchToRate(experiment_id):
+        ret = {}
+        session = dbConn().get_session(dbConn().get_engine())
+        experiment = session.query(models.experiments).filter(models.experiments.id == experiment_id).first()
+        if experiment is None:
+            ret['errors'] = []
+            ret['errors'].append("Invalid experiment id")
+            return apiDecorate(ret, 400, "Invalid experiment id")
+        batches = session.query(models.batch).filter(models.batch.experiment_id == experiment.resource_id).filter(models.batch.rating == None).all()
+        finishedBatch = []
+        for batch in batches:
+            if(batch.isCompleted == False):
+                continue
+            finishedBatch.append(batch.id)
+        ret['batches'] = finishedBatch
+        return apiDecorate(ret, 200, "success")
+        
     @staticmethod
     def getPastExperiments(user_id):
         ret = {}
