@@ -241,12 +241,53 @@ class datasetHandler:
         gender = argArray.get("gender")
         country = argArray.get("country")
         skill = argArray.get("skill")
-        dt = argArray.get("deadline")
+        '''dt = argArray.get("deadline")'''
+        maxTime = argArray.get("maxTime")
+        notifTime = argArray.get("notifTime")
+        allocateTime = argArray.get("allocateTime")
+        title = argArray.get("title")
+
+        if(maxTime is not None):
+            try:
+                if len(maxTime) == 0 or maxTime == 0:
+                    maxTime = None
+                else:
+                    maxTime = int(maxTime)
+            except:
+                return apiDecorate(ret, 400, "Max time is not integer")
+
+        if(notifTime is not None):
+            try:
+                if len(notifTime) == 0 or maxTime == 0:
+                    notifTime = None
+                else:
+                    notifTime = int(notifTime)
+            except:
+                return apiDecorate(ret, 400, "Notification time is not integer")
+
+        if(allocateTime is not None):
+            try:
+                if len(allocateTime) == 0 or maxTime == 0:
+                    allocateTime = None
+                else:
+                    allocateTime = int(allocateTime)
+            except:
+                return apiDecorate(ret, 400, "Allocate time is not integer")
+
+
+        if(notifTime is not None and allocateTime is None):
+            return apiDecorate(ret, 400, "Allocation time needs to be specified if, notification time is specified")
+
+        if(notifTime is not None):
+            if notifTime < 0 or notifTime > allocateTime:
+                return apiDecorate(ret, 400, "Notification time incorrect")
+        '''
         if(dt is not None):
             #deadline = datetime.datetime.strptime(dt, '%Y/%m/%d')
             deadline = datetime.strptime(dt, '%Y/%m/%d')
         else:
             deadline = None
+        '''
 
         if(gender is not None and len(gender) <1):
             gender = None
@@ -262,7 +303,7 @@ class datasetHandler:
         if(multiSelect is None):
             multiSelect = 1
 
-        if((price is None or len(price) <=0) or (batchSize is None or len(batchSize) <=0) or (description is None or len(description) <=0) or (datasetType is None or len(datasetType) <=0)):
+        if((price is None or len(price) <=0) or (batchSize is None or len(batchSize) <=0) or (description is None or len(description) <=0) or (datasetType is None or len(datasetType) <=0) or (title is None or len(title) == 0) ):
             ret['errors'] = []
             ret['errors'].append("Parameters not set")
             return apiDecorate(ret, 400, "Parameters not set")
@@ -304,7 +345,7 @@ class datasetHandler:
             ret['errors'] = []
             ret['errors'].append("Batch problems")
             return apiDecorate(ret, 400, "Batch problems")
-        experiment = models.experiments(user.id, randName, price, len(batches), description, dataset.id, gender, country, skill, deadline)
+        experiment = models.experiments(user.id,title, randName, price, len(batches), description, dataset.id, gender, country, skill,maxTime,notifTime,allocateTime )
         session.add(experiment)
         session.commit()
         botoConn = boto.connect_s3(datasetHandler.DREAM_key, datasetHandler.DREAM_secretKey, host="objects-us-west-1.dream.io")
@@ -386,8 +427,7 @@ class datasetHandler:
             listBatch.append(batchData)
         ret['batches'] = listBatch
         return apiDecorate(ret, 200, 'success')
-
-
+        
     @staticmethod
     def submitBatchRowImage(batch_id):
         ret = {}

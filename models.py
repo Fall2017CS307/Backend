@@ -101,7 +101,7 @@ class dataset(Base):
     __tablename__ = 'dataset'
 
     id = Column(Integer, primary_key=True)
-    title = Column(String, nullable=False)
+    '''title = Column(String, nullable=False)'''
     user_id = Column(Integer,ForeignKey("user.id"))
     resource_id = Column(String(60))
     isMedia = Column(BOOLEAN, default=0, nullable=False)
@@ -117,7 +117,7 @@ class experiments(Base):
     __tablename__ = 'experiments'
 
     id = Column(Integer, primary_key=True)
-    title = Column(String, nullable=False)
+    title = Column(String(40), nullable=False)
     user_id = Column(Integer,ForeignKey("user.id"))
     resource_id =  Column(String(60),unique=True, nullable=False)
     price = Column(Integer, default=0, nullable=False)
@@ -127,11 +127,14 @@ class experiments(Base):
     gender = Column(BOOLEAN, nullable=True)
     skill = Column(Integer, default=0)
     country = Column(String(50), nullable=True)
-    deadline = Column(DateTime, nullable = True)
+    '''deadline = Column(DateTime, nullable = True)'''
     isPhone = Column(BOOLEAN, default=0, nullable=False)
     annotateCount = Column(Integer, default=0, nullable=False)
-
-    def __init__(self,user_id, resource_id, price, batchSize, description, dataset_id, gender=None, country=None, skill=None, deadline=None):
+    notifTime = Column(Integer, nullable=True)
+    allocateTime = Column(Integer, nullable=True)
+    maxTime = Column(Integer, nullable=True)
+    
+    def __init__(self,user_id,title, resource_id, price, batchSize, description, dataset_id, gender=None, country=None, skill=None,maxTime = None,notifTime = None, allocateTime = None ):
         self.user_id = user_id
         self.resource_id = resource_id
         self.price = price
@@ -141,7 +144,11 @@ class experiments(Base):
         self.gender=gender
         self.country=country
         self.skill=skill
-        self.deadline = deadline
+        '''self.deadline = deadline'''
+        self.title = title
+        self.maxTime = maxTime
+        self.notifTime = notifTime
+        self.allocateTime = allocateTime
         self.title = title
 
 class batch(Base):
