@@ -133,6 +133,7 @@ class experiments(Base):
     notifTime = Column(Integer, nullable=True)
     allocateTime = Column(Integer, nullable=True)
     maxTime = Column(Integer, nullable=True)
+    isPaused = Column(Integer, default=0, nullable=False)
 
     def __init__(self,user_id,title, resource_id, price, batchSize, description, dataset_id, gender=None, country=None, skill=None,maxTime = None,notifTime = None, allocateTime = None ):
         self.user_id = user_id

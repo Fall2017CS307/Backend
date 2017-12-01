@@ -9,7 +9,7 @@ class notification():
     twillio_auth_token  = os.environ.get('twillio_auth_token') or "none"
     twillio_number = os.environ.get('twillio_number') or "none"
     
-    @staticmethod   
+    @staticmethod
     def sendMail(fromEmail, toEmail, subject, contentType, content):
         sg = sendgrid.SendGridAPIClient(apikey=notification.sendgrid_key)
 
@@ -25,7 +25,7 @@ class notification():
         twillio_client = Client(notification.twillio_account_sid, notification.twillio_auth_token)
 
         message = twillio_client.messages.create(
-        to="+1"+toNumber, 
+        to="+1"+toNumber,
         from_=notification.twillio_number,
         body=content)
         return message

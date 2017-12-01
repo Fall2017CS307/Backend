@@ -18,6 +18,8 @@ import zipfile
 import imghdr
 import csv
 import json
+from utils.notification import notification
+
 
 class datasetHandler:
     DREAM_username = os.environ.get('dream_user') or "none"
@@ -122,7 +124,7 @@ class datasetHandler:
         experiments = []
         for batch in batches:
             experiment = session.query(models.experiments).filter(models.experiments.resource_id==batch[0]).first()
-            if((experiment.gender != None and experiment.gender != user.gender) or (experiment.country != None and experiment.country!=user.country) or (user.skill < experiment.skill) or (levelFilter is not None and experiment.skill != levelFilter)):
+            if((experiment.gender != None and experiment.gender != user.gender) or (experiment.country != None and experiment.country!=user.country) or (user.skill < experiment.skill) or (levelFilter is not None and experiment.skill != levelFilter) or(experiment.isPaused != 0)):
                 print "User skill " + str(user.skill) + "experiment.skill " + str(experiment.skill) + "\n"
                 continue
             datas = session.query(models.dataset).filter(models.dataset.id == experiment.dataset_id).first()
@@ -151,6 +153,8 @@ class datasetHandler:
             userBatch = {}
             userBatch['id'] = batch.id
             experiment = session.query(models.experiments).filter(models.experiments.resource_id == batch.experiment_id).first()
+            if(experiment.isPaused != 0):
+                continue
             datas = session.query(models.dataset).filter(models.dataset.id == experiment.dataset_id).first()
             userBatch['description'] = experiment.description
             userBatch['price'] = experiment.price
@@ -190,12 +194,13 @@ class datasetHandler:
             return apiDecorate(ret, 400, "No batch available")
 
         batch.user_id = user.id
-        session.commit()
         ret['batch_id'] = batch.id
         if(experiment.maxTime != None):
+            print "here"
             batch.deadline = datetime.now() + timedelta(hours=experiment.maxTime)
             if(experiment.notifTime != None):
                 batch.notifDeadline = datetime.now() + timedelta(hours=experiment.notifTime)
+        session.commit()
         return apiDecorate(ret, 200, "Success")
 
     @staticmethod
@@ -515,6 +520,11 @@ class datasetHandler:
             curExp['experiment_id'] = experiment.id
             curExp['price'] = experiment.price
             curExp['description'] = experiment.description
+            if(experiment.isPaused != 0):
+                curExp['status'] = "Paused"
+            else:
+                curExp['status'] = "Resumed"
+            
             ret['experiments'].append(curExp)
 
         return apiDecorate(ret, 200, "Success")
@@ -598,10 +608,53 @@ class datasetHandler:
             if notifTime < 0 or notifTime > maxTime:
                 return apiDecorate(ret, 400, "Notification time incorrect")
         
+        content = "Experiment (" + experiment.title + "), has been changed." + "\n New instruction are  : " + description
         experiment.description = description
         experiment.notifTime = notifTime
         experiment.allocateTime = allocateTime
         experiment.maxTime = maxTime
         session.commit()
-        return apiDecorate(ret, 200, "Success")
+        session = dbConn().get_session(dbConn().get_engine())
         
+        batches = session.query(models.batch).filter(models.batch.user_id != None).filter(models.batch.experiment_id == experiment.resource_id).all()
+        if(len(batches) < 1):
+            return apiDecorate(ret, 200, "Success")
+        for batch in batches:
+            user = session.query(models.User).filter(models.User.id == batch.user_id).first()
+            notification.sendMail("anirudhchellani@gmail.com", user.email, "Experiment changed", "text/plain", content)
+            notification.sendText(user.phone, content)
+        return apiDecorate(ret, 200, "Success")
+    
+    @staticmethod
+    def notifyTime():
+        session = dbConn().get_session(dbConn().get_engine())
+        curTime = datetime.now()
+        batches = session.query(models.batch).filter(models.batch.notifDeadline!=None).filter(models.batch.notifDeadline < curTime).all()
+        if(len(batches) < 1):
+            return "No Batch"
+        else:
+            print batches
+            str = ""
+            for batch in batches:
+                experiment = session.query(models.experiments).filter(models.experiments.resource_id == batch.experiment_id).first()
+                user = session.query(models.User).filter(models.User.id == batch.user_id).first()
+                content = "Experiment - " + experiment.title + " -  due soon. Please complete"
+                notification.sendMail("anirudhchellani@gmail.com", user.email, "Experiment due", "text/plain", content)
+                notification.sendText(user.phone, "some content")
+            return str
+    
+    @staticmethod
+    def toggleExperiment(experiment_id):
+        ret = {}
+        session = dbConn().get_session(dbConn().get_engine())
+        experiment = session.query(models.experiments).filter(models.experiments.id == experiment_id).first()
+        if(experiment is None):
+            ret['errors'] = []
+            ret['errors'].append("Invalid experiment id")
+            return apiDecorate(ret,400,ret['errors'][0])
+        if(experiment.isPaused == 0):
+            experiment.isPaused = 1
+        else:
+            experiment.isPaused = 0
+        session.commit()
+        return apiDecorate(ret,200,"success")

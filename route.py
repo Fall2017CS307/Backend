@@ -5,6 +5,7 @@ from userHandler import userHandler
 from fileHandler import fileHandler
 from datasetHandler import datasetHandler
 from paymentHandler import paymentHandler
+
 app = Flask(__name__)
 
 app.add_url_rule('/api/getUser/<int:user_id>','/app/getUser/user_id', userHandler.getUserById)
@@ -46,5 +47,9 @@ app.add_url_rule('/api/getExperimentDetails/<int:experiment_id>', '/api/getExper
 app.add_url_rule('/api/updateExperiment/<int:experiment_id>', '/api/updateExperiment/experiment_id', datasetHandler.updateExperiment, methods=['POST', 'GET'])
 
 app.add_url_rule('/api/userBalance/<int:user_id>','/app/userBalance/user_id', userHandler().getBalance)
+app.add_url_rule('/api/notifyTime','/api/notifyTime', datasetHandler.notifyTime)
+
+app.add_url_rule('/api/toggleExperiment/<int:experiment_id>', '/api/toggleExperiment/experiment_id', datasetHandler.toggleExperiment, methods=['POST', 'GET'])
+
 if __name__ == '__main__':
     app.run(debug=True,host="0.0.0.0")
