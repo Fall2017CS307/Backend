@@ -241,10 +241,50 @@ class datasetHandler:
         country = argArray.get("country")
         skill = argArray.get("skill")
         dt = argArray.get("deadline")
+        maxTime = argArray.get("maxTime")
+        notifTime = argArray.get("notifTime")
+        allocateTime = argArray.get("allocateTime")
+        
+        if(maxTime is not None):
+            try:
+                if len(maxTime) == 0 or maxTime == 0:
+                    maxTime = None
+                else:
+                    maxTime = int(maxTime)
+            except:
+                return apiDecorate(ret, 400, "Max time is not integer")
+
+        if(notifTime is not None):
+            try:
+                if len(notifTime) == 0 or maxTime == 0:
+                    notifTime = None
+                else:
+                    notifTime = int(notifTime)
+            except:
+                return apiDecorate(ret, 400, "Notification time is not integer")
+            
+        if(allocateTime is not None):
+            try:
+                if len(allocateTime) == 0 or maxTime == 0:
+                    allocateTime = None
+                else:
+                    allocateTime = int(allocateTime)
+            except:
+                return apiDecorate(ret, 400, "Allocate time is not integer")
+        
+        
+        if(notifTime is not None and allocTime is None):
+            return apoDecorate(ret, 400, "Allocation time needs to be specified if, notification time is specified")
+        
+        if(notifTime is not None):
+            if notifTime < 0 or notifTime > allocTime:
+                return apiDecorate(ret, 400, "Notification time incorrect")
+        
         if(dt is not None):
             deadline = datetime.datetime.strptime(dt, '%Y/%m/%d')
         else:
             deadline = None
+        
 
         if(gender is not None and len(gender) <1):
             gender = None
