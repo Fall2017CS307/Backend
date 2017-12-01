@@ -406,7 +406,10 @@ def test_createExperiment():
 	if(not suc):
 		assert False, "Experiment could not be created"
 
-	assert False, jsonStr
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_exp = session.query(models.experiments).filter(models.experiments.user_id == test_user.id).first()
+	if(test_exp is None):
+		assert False, "Gives success message but is not created in experiment table"
 
 def test_getExperiments():
 
@@ -425,7 +428,7 @@ def test_getExperiments():
 
 	if(len(jsonArr['experiments']) != session.query(models.experiments).count()):
 		assert False, "Gives success message but doesn't return all experiments"
-'''
+
 def test_assignBatch():
 
 	session = db.dbConn().get_session(db.dbConn().get_engine())
@@ -440,17 +443,71 @@ def test_assignBatch():
 		assert False, "Did not assign batch"
 
 	jsonArr = json.loads(jsonStr)
-'''
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_batch = session.query(models.batch).filter(models.batch.id == jsonArr['batch_id']).first()
+
+	if(test_batch.user_id != test_user.id):
+		assert False, "Didn't assign batch to right user ID"
+
+def test_batchList():
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_user = session.query(models.User).filter(models.User.email == test_email).first()
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_batch = session.query(models.batch).filter(models.batch.user_id == test_user.id).first()
+
+	jsonStr, suc = call_batchList(test_user.id)
+	jsonArr = json.loads(jsonStr)
+
+	if(not suc):
+		assert False, "Could not give a list of batches"
+
+	if(test_batch.id != jsonArr['batches'][0]['id']):
+
+		assert False, "Returned success but didn't return a correct list of batches"
+
+def test_getBatch():
 
 
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_user = session.query(models.User).filter(models.User.email == test_email).first()
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_batch = session.query(models.batch).filter(models.batch.user_id == test_user.id).first()
+
+	#assert False, int(test_batch.id)
+
+	jsonStr, suc = call_getExperiments(int(test_batch.id))
+	#jsonArr = json.loads(jsonStr)
+
+	assert False, jsonString
 
 def test_user_delete():
 	session = db.dbConn().get_session(db.dbConn().get_engine())
 	delUser = session.query(models.User).filter(models.User.email == test_email).first()
+	checkExp = session.query(models.experiments).filter(models.experiments.user_id == delUser.id).first()
+	checkBatch = session.query(models.batch).filter(models.batch.experiment_id == checkExp.resource_id).all()
+
+	for temp in checkBatch:
+		session.delete(temp)
+	session.commit()
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	checkExp = session.query(models.experiments).filter(models.experiments.user_id == delUser.id).all()
+
+	for temp in checkExp:
+		session.delete(temp)
+	session.commit()
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
 	checkSet = session.query(models.dataset).filter(models.dataset.user_id == delUser.id).all()
+
 	for temp in checkSet:
 		session.delete(temp)
-		session.commit()
+	session.commit()
+
 	session = db.dbConn().get_session(db.dbConn().get_engine())
 	delUser = session.query(models.User).filter(models.User.email == test_email).first()
 	session.delete(delUser)
@@ -566,8 +623,9 @@ def call_createExperiment(user):
 	if(checkSet.isMedia):
 		temp = 1
 
-	jsonString = urllib2.urlopen(SERVER_ADDRESS + '/api/' + str(user) + '/create?dataset_id=' + str(checkSet.id) + '&batchSize=1&user_id=' + str(user) + '&price=1&description=IMAGE&isPhone=3126469650&datasetType=' + str(temp))
-	assert False, jsonString
+	jsonString = urllib2.urlopen(SERVER_ADDRESS + '/api/' + str(user) + '/create?dataset_id=' + str(checkSet.id) + '&batchSize=1&user_id=' + str(user)
+	+ '&price=1&description=IMAGE&isPhone=3126469650&datasetType=' + str(temp) + '&title=FirstExperiment').read()
+
 	jsonArr = json.loads(jsonString)
 
 	#assert False, jsonArr['status']
@@ -588,7 +646,7 @@ def call_getExperiments(user):
 		return str(jsonArr), False
 	return jsonString, True
 
-'''
+
 def call_assignBatch(user, experiment):
 
 	jsonString  = urllib2.urlopen(SERVER_ADDRESS + '/api/' + str(user) + '/assign/' + str(experiment)).read()
@@ -612,7 +670,17 @@ def call_batchList(user):
 		return str(jsonArr), False
 	return jsonString, True
 
-'''
+def call_getBatch(batch_id):
+
+	jsonString  = urllib2.urlopen(SERVER_ADDRESS + '/api/' + str(batch_id) + '/getBatch').read()
+
+	#jsonArr = json.loads(jsonString)
+
+	assert False, jsonString
+	#print(jsonString)
+	if(jsonArr['status']!=200):
+		return str(jsonArr), False
+	return jsonString, True
 
 #session = db.dbConn().get_session(db.dbConn().get_engine())
 #checkUser = session.query(models.User).filter(models.User.email == 'singh351@purdue.edu').first()
@@ -622,6 +690,10 @@ def call_batchList(user):
 '''
 session = db.dbConn().get_session(db.dbConn().get_engine())
 test_user = session.query(models.User).filter(models.User.email == 'singh351@purdue.edu').first()
+
+test_user.balance = 10000
+session.commit()
+
 
 session = db.dbConn().get_session(db.dbConn().get_engine())
 test_experiment = session.query(models.experiments).filter(models.experiments.id == 1).first()

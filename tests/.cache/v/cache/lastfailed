@@ -2,15 +2,6 @@
   "test.py::TestDatabase::()": true, 
   "test.py::TestDatabase::()::test_environment": true, 
   "test.py::TestDatabase::()::test_table_setup": true, 
-  "test.py::test_allPublicDatasets": true, 
-  "test.py::test_assignBatch": true, 
-  "test.py::test_copyPublicDataset": true, 
-  "test.py::test_createExperiment": true, 
-  "test.py::test_getExperiments": true, 
-  "test.py::test_get_datasets": true, 
-  "test.py::test_makeDatasetPrivate": true, 
-  "test.py::test_makeDatasetPublic": true, 
-  "test.py::test_upload": true, 
-  "test.py::test_user_delete": true, 
+  "test.py::test_getBatch": true, 
   "test_db_config.py::test_answer": true
 }
