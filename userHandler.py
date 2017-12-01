@@ -286,3 +286,15 @@ class userHandler():
         copyDataset.isPublic = True
         session.commit()
         return apiDecorate(ret, 200, "Success")
+        
+    def getBalance(self,user_id):
+        ret = {}
+        user = self.getUser(user_id)
+        if user is None:
+            ret['errors'] = []
+            ret['errors'].append("Invalid User")
+            return apiDecorate(ret, 400, "Invalid User")
+            
+        ret['balance'] = user.balance
+        return apiDecorate(ret,200,"success")
+         

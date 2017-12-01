@@ -5,7 +5,7 @@ import MySQLdb
 from jsonReturn import apiDecorate
 import models
 from utils.dbConn import dbConn
-from datetime import datetime
+from datetime import datetime, timedelta
 #import datetime
 from random import randint
 from utils.notification import notification
@@ -49,7 +49,8 @@ class datasetHandler:
             filesArr = []
             for item in fileArr:
                 itemKey =  dataset.resource_id + "/" + str(item)
-                itemK = Key(itemKey)
+                itemK = Key(bucket)
+                itemK.key = itemKey
                 fileEntry = {}
                 fileEntry['name'] = item
                 fileEntry['link'] = itemK.generate_url(3600, query_auth=True, force_http=True)
@@ -191,7 +192,10 @@ class datasetHandler:
         batch.user_id = user.id
         session.commit()
         ret['batch_id'] = batch.id
-
+        if(experiment.maxTime != None):
+            batch.deadline = datetime.now() + timedelta(hours=experiment.maxTime)
+            if(experiment.notifTime != None):
+                batch.notifDeadline = datetime.now() + timedelta(hours=experiment.notifTime)
         return apiDecorate(ret, 200, "Success")
 
     @staticmethod
@@ -277,7 +281,7 @@ class datasetHandler:
                 return apiDecorate(ret, 400, "Allocate time is not integer")
 
 
-        if(notifTime is not None and allocateTime is None):
+        if(notifTime is not None and maxTime is None):
             return apiDecorate(ret, 400, "Allocation time needs to be specified if, notification time is specified")
 
         if(notifTime is not None):
@@ -514,3 +518,90 @@ class datasetHandler:
             ret['experiments'].append(curExp)
 
         return apiDecorate(ret, 200, "Success")
+        
+    @staticmethod
+    def getExperimentDetails(experiment_id):
+        ret = {}
+        session = dbConn().get_session(dbConn().get_engine())
+        experiment = session.query(models.experiments).filter(models.experiments.id == experiment_id).first()
+        if experiment is None:
+            ret['errors'] = []
+            ret['errors'].append("Invalid experiment id")
+            return apiDecorate(ret,400,ret['errors'][0])
+        
+        ret['id'] = experiment_id
+        ret['description'] = experiment.description
+        ret['notifTime'] = experiment.notifTime
+        ret['allocateTime'] = experiment.allocateTime
+        ret['maxTime'] = experiment.maxTime
+        return apiDecorate(ret, 200, "success")
+        
+    @staticmethod
+    def updateExperiment(experiment_id):
+        ret = {}
+        session = dbConn().get_session(dbConn().get_engine())
+        experiment = session.query(models.experiments).filter(models.experiments.id == experiment_id).first()
+        if experiment is None:
+            ret['errors'] = []
+            ret['errors'].append("Invalid experiment id")
+            return apiDecorate(ret,400,ret['errors'][0])
+        argArray = {}
+        if request.method == "GET":
+            argArray = request.args
+
+        elif request.method  == "POST":
+            if(len(request.form) > 0):
+                argArray = request.form
+            else:
+                print request.get_data()
+                argArray = json.loads(request.data)
+        
+        description = argArray.get("description")
+        notifTime = argArray.get("notifTime")
+        allocateTime = argArray.get("allocateTime")
+        maxTime = argArray.get("maxTime")
+        if(description == None or len(description) == 0):
+            return apiDecorate(ret, 400, "Description cant be empty")
+            
+        if(maxTime is not None):
+            try:
+                if len(maxTime) == 0 or maxTime == 0:
+                    maxTime = None
+                else:
+                    maxTime = int(maxTime)
+            except:
+                return apiDecorate(ret, 400, "Max time is not integer")
+
+        if(notifTime is not None):
+            try:
+                if len(notifTime) == 0 or maxTime == 0:
+                    notifTime = None
+                else:
+                    notifTime = int(notifTime)
+            except:
+                return apiDecorate(ret, 400, "Notification time is not integer")
+
+        if(allocateTime is not None):
+            try:
+                if len(allocateTime) == 0 or maxTime == 0:
+                    allocateTime = None
+                else:
+                    allocateTime = int(allocateTime)
+            except:
+                return apiDecorate(ret, 400, "Allocate time is not integer")
+
+
+        if(notifTime is not None and max is None):
+            return apiDecorate(ret, 400, "Allocation time needs to be specified if, notification time is specified")
+
+        if(notifTime is not None):
+            if notifTime < 0 or notifTime > maxTime:
+                return apiDecorate(ret, 400, "Notification time incorrect")
+        
+        experiment.description = description
+        experiment.notifTime = notifTime
+        experiment.allocateTime = allocateTime
+        experiment.maxTime = maxTime
+        session.commit()
+        return apiDecorate(ret, 200, "Success")
+        

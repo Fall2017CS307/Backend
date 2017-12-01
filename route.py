@@ -42,7 +42,9 @@ app.add_url_rule('/api/submitBatchRowImage/<int:batch_id>', '/api/submitBatchRow
 
 app.add_url_rule('/api/getExperimentProgress/<int:user_id>', '/api/getExperimentProgress/user_id', datasetHandler.getExperimentProgress, methods=['POST', 'GET'])
 app.add_url_rule('/api/getBatchToRate/<int:experiment_id>', '/api/getBatchToRate/experiment_id', datasetHandler.getBatchToRate, methods=['POST', 'GET'])
+app.add_url_rule('/api/getExperimentDetails/<int:experiment_id>', '/api/getExperimentDetails/experiment_id', datasetHandler.getExperimentDetails, methods=['POST', 'GET'])
+app.add_url_rule('/api/updateExperiment/<int:experiment_id>', '/api/updateExperiment/experiment_id', datasetHandler.updateExperiment, methods=['POST', 'GET'])
 
-
+app.add_url_rule('/api/userBalance/<int:user_id>','/app/userBalance/user_id', userHandler().getBalance)
 if __name__ == '__main__':
     app.run(debug=True,host="0.0.0.0")
