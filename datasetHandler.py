@@ -49,7 +49,7 @@ class datasetHandler:
             filesArr = []
             for item in fileArr:
                 itemKey =  dataset.resource_id + "/" + str(item)
-                itemK = Key(bucket)
+                itemK = Key(itemKey)
                 fileEntry = {}
                 fileEntry['name'] = item
                 fileEntry['link'] = itemK.generate_url(3600, query_auth=True, force_http=True)
