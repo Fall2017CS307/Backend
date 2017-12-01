@@ -241,7 +241,6 @@ class datasetHandler:
         country = argArray.get("country")
         skill = argArray.get("skill")
         dt = argArray.get("deadline")
-
         if(dt is not None):
             deadline = datetime.datetime.strptime(dt, '%Y/%m/%d')
         else:
@@ -428,23 +427,28 @@ class datasetHandler:
         return apiDecorate(ret, 200, "Success")
         
     @staticmethod
-    def getExperimentProgress(experiment_id):
+    def getExperimentProgress(user_id):
         ret = {}
         session = dbConn().get_session(dbConn().get_engine())
-        experiment = session.query(models.experiments).filter(models.experiments.id == experiment_id).first()
-        if(experiment is None):
+        experiments = session.query(models.experiments).filter(models.experiments.user_id == user_id).all()
+        if(experiments is None):
             return apiDecorate(ret, 400,"Invalid id")
-            
-        totalAnnotateCount = 0
-        curAnnotateCount = 0
-        print(experiment.resource_id)
-        batches = session.query(models.batch).filter(models.batch.experiment_id == experiment.resource_id).all()
-        for batch in batches :
-            totalAnnotateCount += batch.totalAnnotation
-            curAnnotateCount += batch.curAnnotation
-        
-        ret['total'] = totalAnnotateCount
-        ret['completed'] = curAnnotateCount
+        ret['experiments'] = []
+        for experiment in experiments:
+            totalAnnotateCount = 0
+            curAnnotateCount = 0
+            print(experiment.resource_id)
+            batches = session.query(models.batch).filter(models.batch.experiment_id == experiment.resource_id).all()
+            for batch in batches :
+                totalAnnotateCount += batch.totalAnnotation
+                curAnnotateCount += batch.curAnnotation
+            curExp = {}
+            curExp['total'] = totalAnnotateCount
+            curExp['completed'] = curAnnotateCount
+            curExp['experiment_id'] = experiment.id
+            curExp['price'] = experiment.price
+            curExp['description'] = experiment.description
+            ret['experiments'].append(curExp)
         
         return apiDecorate(ret, 200, "Success")
             

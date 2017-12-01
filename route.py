@@ -40,7 +40,7 @@ app.add_url_rule('/api/getPastExperiments/<int:user_id>', '/api/getPastExperimen
 
 app.add_url_rule('/api/submitBatchRowImage/<int:batch_id>', '/api/submitBatchRowImage/batch_id', datasetHandler.submitBatchRowImage, methods=['POST', 'GET'])
 
-app.add_url_rule('/api/getExperimentProgress/<int:experiment_id>', '/api/getExperimentProgress/experiment_id', datasetHandler.getExperimentProgress, methods=['POST', 'GET'])
+app.add_url_rule('/api/getExperimentProgress/<int:user_id>', '/api/getExperimentProgress/user_id', datasetHandler.getExperimentProgress, methods=['POST', 'GET'])
 
 
 if __name__ == '__main__':
