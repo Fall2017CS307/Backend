@@ -13,7 +13,7 @@ class userHandler():
     @staticmethod
     def getUserById(user_id):
         session = dbConn().get_session(dbConn().get_engine())
-        netUser = session.query(models.User).filter(models.User.id == user_id).first()
+        retUser = session.query(models.User).filter(models.User.id == user_id).first()
         if(retUser is None):
             return ""
         ret = {}
