@@ -165,7 +165,7 @@ class batch(Base):
     totalAnnotation = Column(Integer, default=0, nullable=False)
     deadline = Column(DateTime, nullable = True)
     notifDeadline = Column(DateTime, nullable = True)
-    
+    allocateTime = Column(Integer, nullable=True)    
 
     def __init__(self,experiment_id, local_resource_id, batchSize):
         self.experiment_id = experiment_id

@@ -118,7 +118,8 @@ class datasetHandler:
         batches = session.query(models.batch.experiment_id).filter(models.batch.user_id==None).distinct(models.batch.experiment_id)
         if(sort == "compensation"):
              batches = batches.order_by(desc(models.batch.price))
-        
+        if(sort == "time"):
+             batches = batches.order_by(models.batch.allocateTime) 
         batches = batches.all()
 
         experiments = []
@@ -372,6 +373,7 @@ class datasetHandler:
             k.key = "e_"+randName+"/"+str(batchCount)+".json"
             sent = k.set_contents_from_string(batchJson, cb=None, md5=None, reduced_redundancy=False)
             batch = models.batch(randName, batchCount, len(batch))
+            batch.allocateTime  = allocateTime or 0
             session.add(batch)
             session.commit()
             batchCount+=1
