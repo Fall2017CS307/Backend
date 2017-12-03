@@ -19,7 +19,7 @@ import imghdr
 import csv
 import json
 from utils.notification import notification
-
+import base64
 
 class datasetHandler:
     DREAM_username = os.environ.get('dream_user') or "none"
@@ -119,7 +119,7 @@ class datasetHandler:
         if(sort == "compensation"):
              batches = batches.order_by(desc(models.batch.price))
         if(sort == "time"):
-             batches = batches.order_by(models.batch.allocateTime) 
+             batches = batches.order_by(models.batch.allocateTime)
         batches = batches.all()
 
         experiments = []
@@ -488,17 +488,26 @@ class datasetHandler:
         curDataset = session.query(models.dataset).filter(models.dataset.id == curExperiment.dataset_id).first()
         if(curDataset.isMedia == False):
             return apiDecorate(ret,400,"Invalid submission route called")
-        if(curBatch.curAnnotation == curBatch.totalAnnotation):
+        if(curBatch.isCompleted == True):
             return apiDecorate(ret,400,"Batch finished annotating")
         batchData = {}
         batchData['text'] = imageText
         batchData['data'] = imageData
+        
         botoConn = boto.connect_s3(datasetHandler.DREAM_key, datasetHandler.DREAM_secretKey, host="objects-us-west-1.dream.io")
+        fileApp = "e_"+curExperiment.resource_id+"/"+str(curBatch.local_resource_id)+"_"+str(curBatch.curAnnotation)
         bucket = botoConn.get_bucket(datasetHandler.DREAM_Bucket, validate=False)
         k = Key(bucket)
-        k.key = "e_"+curExperiment.resource_id+"/"+str(curBatch.local_resource_id)+"_"+str(curBatch.curAnnotation)+".json"
+        k.key = fileApp+"/text"
         print "key "+k.key
-        sent = k.set_contents_from_string(json.dumps(batchData), cb=None, md5=None, reduced_redundancy=False)
+        sent = k.set_contents_from_string(imageText, cb=None, md5=None, reduced_redundancy=False)
+        
+        k = Key(bucket)
+        k.key = fileApp+"/image"
+        print "key "+k.key
+        sent = k.set_contents_from_string(base64.decodestring(imageData), cb=None, md5=None, reduced_redundancy=False)
+        if((curBatch.curAnnotation +1) >= curBatch.totalAnnotation):
+            curBatch.isCompleted = True
         curBatch.curAnnotation +=1
         session.commit()
         return apiDecorate(ret, 200, "Success")
