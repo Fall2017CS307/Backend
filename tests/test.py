@@ -610,6 +610,17 @@ def test_getUserBalance():
 	if(jsonArr['balance'] != test_user.balance):
 		assert False, "Returns success message but balance shown is not correct"
 
+def test_updateDataset():
+
+	session = db.dbConn().get_session(db.dbConn().get_engine())
+	test_user = session.query(models.User).filter(models.User.email == test_email).first()
+
+	#session = db.dbConn().get_session(dbConn().get_engine())
+	experiment = session.query(models.experiments).filter(models.experiments.user_id == test_user.id).first()
+	jsonStr, suc = call_updateExperiment(experiment.id)
+
+	if(not suc):
+		assert False, "Failed to update experiment"
 
 def test_user_delete():
 	session = db.dbConn().get_session(db.dbConn().get_engine())
@@ -886,6 +897,15 @@ def call_getUserBalance(user_id):
 		return str(jsonArr), False
 	return jsonString, True
 
+def call_updateExperiment(experiment_id):
+
+	jsonString  = urllib2.urlopen(SERVER_ADDRESS + '/api/updateExperiment/' + str(experiment_id) + '?description=newChanges').read()
+
+	jsonArr = json.loads(jsonString)
+
+	if(jsonArr['status']!=200):
+		return str(jsonArr), False
+	return jsonString, True
 '''
 session = db.dbConn().get_session(db.dbConn().get_engine())
 test_user = session.query(models.User).filter(models.User.email == 'singh351@purdue.edu').first()
