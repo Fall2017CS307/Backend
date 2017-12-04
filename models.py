@@ -166,7 +166,8 @@ class batch(Base):
     deadline = Column(DateTime, nullable = True)
     notifDeadline = Column(DateTime, nullable = True)
     allocateTime = Column(Integer, nullable=True)
-
+    price = Column(Integer, nullable=False)
+    
     def __init__(self,experiment_id, local_resource_id, batchSize):
         self.experiment_id = experiment_id
         self.local_resource_id = local_resource_id

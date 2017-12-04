@@ -20,6 +20,7 @@ import csv
 import json
 from utils.notification import notification
 import base64
+from sqlalchemy import desc
 
 class datasetHandler:
     DREAM_username = os.environ.get('dream_user') or "none"
@@ -116,13 +117,13 @@ class datasetHandler:
             return apiDecorate(ret, 400, "Invalid User")
 
         ret = {}
-        batches = session.query(models.batch.experiment_id).filter(models.batch.user_id==None).distinct(models.batch.experiment_id)
         if(sort == "compensation"):
-             batches = batches.order_by(desc(models.batch.price))
+            batches = session.query(models.batch.experiment_id).filter(models.batch.user_id==None).order_by(models.batch.price).group_by(models.batch.price).group_by(models.batch.experiment_id).all()
         if(sort == "time"):
-             batches = batches.order_by(models.batch.allocateTime)
-        batches = batches.all()
-
+             batches = session.query(models.batch.experiment_id).filter(models.batch.user_id==None).order_by(models.batch.allocateTime).group_by(models.batch.allocateTime).group_by(models.batch.experiment_id).all()
+             
+        else:
+            batches = session.query(models.batch.experiment_id).filter(models.batch.user_id==None).distinct(models.batch.experiment_id).all()
         experiments = []
         for batch in batches:
             experiment = session.query(models.experiments).filter(models.experiments.resource_id==batch[0]).first()
@@ -135,6 +136,7 @@ class datasetHandler:
             tempExperiment['price'] = experiment.price
             tempExperiment['description'] = experiment.description
             tempExperiment['isMedia'] = datas.isMedia
+            tempExperiment['allocate'] = experiment.allocateTime or 0
             experiments.append(tempExperiment)
 
         ret['experiments'] = experiments
@@ -375,6 +377,7 @@ class datasetHandler:
             sent = k.set_contents_from_string(batchJson, cb=None, md5=None, reduced_redundancy=False)
             batch = models.batch(randName, batchCount, len(batch))
             batch.allocateTime  = allocateTime or 0
+            batch.price = price
             session.add(batch)
             session.commit()
             batchCount+=1
