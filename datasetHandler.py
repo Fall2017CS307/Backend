@@ -502,14 +502,9 @@ class datasetHandler:
         fileApp = "e_"+curExperiment.resource_id+"/"+str(curBatch.local_resource_id)+"_"+str(curBatch.curAnnotation)
         bucket = botoConn.get_bucket(datasetHandler.DREAM_Bucket, validate=False)
         k = Key(bucket)
-        k.key = fileApp+"/text"
+        k.key = fileApp+".json"
         print "key "+k.key
-        sent = k.set_contents_from_string(imageText, cb=None, md5=None, reduced_redundancy=False)
-        
-        k = Key(bucket)
-        k.key = fileApp+"/image"
-        print "key "+k.key
-        sent = k.set_contents_from_string(base64.decodestring(imageData), cb=None, md5=None, reduced_redundancy=False)
+        sent = k.set_contents_from_string(json.dumps(batchData), cb=None, md5=None, reduced_redundancy=False)
         if((curBatch.curAnnotation +1) >= curBatch.totalAnnotation):
             curBatch.isCompleted = True
         curBatch.curAnnotation +=1
@@ -529,11 +524,36 @@ class datasetHandler:
                 print request.get_data()
                 argArray = json.loads(request.data)
 
-        imageText = argArray.get('response') or ""
-        if(len(imageText) == 0):
-            return apiDecorate(ret,400,"Image data/text not present")
+        responseText = argArray.get('response') or ""
+        if(len(responseText) == 0):
+            return apiDecorate(ret,400,"responseText not present")
+        session = dbConn().get_session(dbConn().get_engine())
+
+        curBatch = session.query(models.batch).filter(models.batch.id == batch_id).first()
+        if(curBatch is None):
+            return apiDecorate(ret, 400, 'Invalid batch id')
+        curExperiment = session.query(models.experiments).filter(models.experiments.resource_id == curBatch.experiment_id).first()
+        curDataset = session.query(models.dataset).filter(models.dataset.id == curExperiment.dataset_id).first()
+        if(curDataset.isMedia == True):
+            return apiDecorate(ret,400,"Invalid submission route called")
+        if(curBatch.isCompleted == True):
+            return apiDecorate(ret,400,"Batch finished annotating")
+        batchData = {}
+        batchData['text'] = responseText
+
+        botoConn = boto.connect_s3(datasetHandler.DREAM_key, datasetHandler.DREAM_secretKey, host="objects-us-west-1.dream.io")
+        fileApp = "e_"+curExperiment.resource_id+"/"+str(curBatch.local_resource_id)+"_"+str(curBatch.curAnnotation)
+        bucket = botoConn.get_bucket(datasetHandler.DREAM_Bucket, validate=False)
+        k = Key(bucket)
+        k.key = fileApp+".json"
+        print "key "+k.key
+        sent = k.set_contents_from_string(json.dumps(batchData), cb=None, md5=None, reduced_redundancy=False)
+        if((curBatch.curAnnotation +1) >= curBatch.totalAnnotation):
+            curBatch.isCompleted = True
+        curBatch.curAnnotation +=1
+        session.commit()
         return apiDecorate(ret, 200, "Success")
-        
+
 
     @staticmethod
     def getExperimentProgress(user_id):
