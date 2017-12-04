@@ -24,6 +24,9 @@ app.add_url_rule('/api/pay','api/pay', paymentHandler.pay, methods=['POST'])
 app.add_url_rule('/api/<int:user_id>/dataset/delete/<int:dataset_id>/', '/api/user_id/dataset/delete/dataset_id', userHandler().deleteDataset, methods=['POST', 'GET'])
 app.add_url_rule('/api/<int:user_id>/dataset/public/<int:dataset_id>/', '/api/user_id/dataset/public/dataset_id', userHandler().makeDatasetPublic, methods=['POST', 'GET'])
 app.add_url_rule('/api/<int:user_id>/dataset/private/<int:dataset_id>/', '/api/user_id/dataset/private/dataset_id', userHandler().makeDatasetPrivate, methods=['POST', 'GET'])
+
+app.add_url_rule('/api/<int:user_id>/toggleDataset/<int:dataset_id>/', '/api/user_id/toggleDataset/dataset_id', userHandler().toggleDataset, methods=['POST', 'GET'])
+
 app.add_url_rule('/api/datasets/public', '/api/datasets/public', userHandler().getPublicDatasets, methods=['POST', 'GET'])
 app.add_url_rule('/api/<int:user_id>/dataset/copy/<int:dataset_id>/', '/api/user_id/dataset/copy/private/dataset_id', userHandler().copyPublicDataset, methods=['POST', 'GET'])
 

@@ -186,6 +186,10 @@ class userHandler():
             returnData = {}
             returnData['id'] = data.id
             returnData['resource_name'] = data.resource_id
+            if(data.isPublic == True):
+                returnData['status'] = "Public"
+            else:
+                returnData['status'] = "Private"
             returnDict.append(returnData)
         ret['datasets'] = returnDict
         return apiDecorate(ret, 200, "Success")
@@ -250,6 +254,29 @@ class userHandler():
 
         return apiDecorate(ret, 200, "Success")
 
+    def toggleDataset(self,user_id,dataset_id):
+        ret = {}
+        user = self.getUser(user_id)
+        if user is None:
+            ret['errors'] = []
+            ret['errors'].append("Invalid User")
+            return apiDecorate(ret, 400, "Invalid User")
+
+        session = session = dbConn().get_session(dbConn().get_engine())
+        dataset = session.query(models.dataset).filter(models.dataset.user_id == user_id).filter(models.dataset.id == dataset_id).first()
+        
+        if dataset is None:
+            ret['errors'] = []
+            ret['errors'].append("Invalid dataset or user doesnt own the dataset")
+            return apiDecorate(ret, 400, "Invalid dataset or user doesnt own the dataset")
+        
+        if(dataset.isPublic == False):
+            dataset.isPublic = True
+        else:
+            dataset.isPublic = False
+        session.commit()
+        return apiDecorate(ret, 200, "Success")
+        
     def getPublicDatasets(self):
         ret = {}
         session = session = dbConn().get_session(dbConn().get_engine())

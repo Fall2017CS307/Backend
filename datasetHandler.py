@@ -439,7 +439,10 @@ class datasetHandler:
         for batch in batches:
             if(batch.isCompleted == False):
                 continue
-            finishedBatch.append(batch.id)
+            curBatch = {}
+            curBatch['id'] = batch.id
+            curBatch['link'] = "There is a link"
+            finishedBatch.append(curBatch)
         ret['batches'] = finishedBatch
         return apiDecorate(ret, 200, "success")
         
@@ -534,6 +537,7 @@ class datasetHandler:
             curExp['experiment_id'] = experiment.id
             curExp['price'] = experiment.price
             curExp['description'] = experiment.description
+            curExp['link'] = "There is a link"
             if(experiment.isPaused != 0):
                 curExp['status'] = "Paused"
             else:
