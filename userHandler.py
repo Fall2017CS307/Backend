@@ -184,6 +184,7 @@ class userHandler():
         returnDict = []
         for data in datasets:
             returnData = {}
+            returnData['title'] = "Some title"
             returnData['id'] = data.id
             returnData['resource_name'] = data.resource_id
             if(data.isPublic == True):
