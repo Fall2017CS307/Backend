@@ -13,7 +13,7 @@ class userHandler():
     @staticmethod
     def getUserById(user_id):
         session = dbConn().get_session(dbConn().get_engine())
-        retUser = session.query(models.User).filter(models.User.id == user_id).first()
+        netUser = session.query(models.User).filter(models.User.id == user_id).first()
         if(retUser is None):
             return ""
         ret = {}
@@ -286,7 +286,7 @@ class userHandler():
         for data in datasets:
             returnData = {}
             #returnData['file_name'] = data.file_name
-            retrurnData['title'] = "Some title"
+            returnData['title'] = "Some title"
             returnData['resource_name'] = data.resource_id
             returnData['id'] = data.id
             returnDict.append(returnData)
