@@ -509,6 +509,11 @@ class datasetHandler:
             curBatch.isCompleted = True
         curBatch.curAnnotation +=1
         session.commit()
+        session = dbConn().get_session(dbConn().get_engine())
+        curBatch = session.query(models.batch).filter(models.batch.id == batch_id).first()
+        if(curBatch.isCompleted == True):
+            datasetHandler.makeBatchData(batch_id)
+        
         return apiDecorate(ret, 200, "Success")
         
     @staticmethod
@@ -716,3 +721,42 @@ class datasetHandler:
             experiment.isPaused = 0
         session.commit()
         return apiDecorate(ret,200,"success")
+
+    @staticmethod
+    def makeBatchData(batch_id):
+        ret = {}
+        session = dbConn().get_session(dbConn().get_engine())
+
+        curBatch = session.query(models.batch).filter(models.batch.id == batch_id).first()
+        curExp = session.query(models.experiments).filter(models.experiments.resource_id == curBatch.experiment_id).first()
+        price = curExp.price
+        curUser = session.query(models.User).filter(models.User.id == curBatch.user_id).first()
+        if(curUser is None):
+            return apiDecorate(ret, 400, "Not right user")
+            
+        curUser.balance = curUser.balance + price
+        session.commit()
+        
+        session = dbConn().get_session(dbConn().get_engine())
+    
+        curBatch = session.query(models.batch).filter(models.batch.id == batch_id).first()
+        curExperiment = session.query(models.experiments).filter(models.experiments.resource_id == curBatch.experiment_id).first()
+        batches = session.query(models.batch).filter(models.batch.experiment_id == curBatch.experiment_id).order_by(models.batch.local_resource_id).all()
+        botoConn = boto.connect_s3(datasetHandler.DREAM_key, datasetHandler.DREAM_secretKey, host="objects-us-west-1.dream.io")
+        bucket = botoConn.get_bucket(datasetHandler.DREAM_Bucket, validate=False)
+        dataArr = []
+        for i in range(0,curBatch.totalAnnotation):
+            k = Key(bucket)
+            fileApp = "e_"+curExperiment.resource_id+"/"+str(curBatch.local_resource_id)+"_"+str(i)+".json"
+            k.key = fileApp
+            fileJson = k.get_contents_as_string()
+            fileArr = json.loads(fileJson)
+            dataArr.append(fileArr)
+            
+        fileApp = "e_"+curExperiment.resource_id+"/"+str(curBatch.local_resource_id)+"_res"
+        k = Key(bucket)
+        k.key = fileApp+".json"
+        print "key "+k.key
+        sent = k.set_contents_from_string(json.dumps(dataArr), cb=None, md5=None, reduced_redundancy=False)
+        
+        
