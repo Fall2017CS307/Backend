@@ -259,6 +259,7 @@ class userHandler():
             returnData = {}
             #returnData['file_name'] = data.file_name
             returnData['resource_name'] = data.resource_id
+            returnData['id'] = data.id
             returnDict.append(returnData)
         ret['datasets'] = returnDict
         return apiDecorate(ret, 200, "Success")
