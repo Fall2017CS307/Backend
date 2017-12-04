@@ -60,6 +60,7 @@ class datasetHandler:
             ret['files'] = filesArr
         else:
             ret['data'] = fileArr
+        ret['count'] = batch.curAnnotation
         return apiDecorate(ret, 200, "Success")
         #print k.generate_url(3600, query_auth=True, force_http=True)
         return fileJson
@@ -514,6 +515,25 @@ class datasetHandler:
         curBatch.curAnnotation +=1
         session.commit()
         return apiDecorate(ret, 200, "Success")
+        
+    @staticmethod
+    def submitBatchRowText(batch_id):
+        ret = {}
+        if request.method == "GET":
+            argArray = request.args
+
+        elif request.method  == "POST":
+            if(len(request.form) > 0):
+                argArray = request.form
+            else:
+                print request.get_data()
+                argArray = json.loads(request.data)
+
+        imageText = argArray.get('response') or ""
+        if(len(imageText) == 0):
+            return apiDecorate(ret,400,"Image data/text not present")
+        return apiDecorate(ret, 200, "Success")
+        
 
     @staticmethod
     def getExperimentProgress(user_id):
