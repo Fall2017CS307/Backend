@@ -286,6 +286,7 @@ class userHandler():
         for data in datasets:
             returnData = {}
             #returnData['file_name'] = data.file_name
+            retrurnData['title'] = "Some title"
             returnData['resource_name'] = data.resource_id
             returnData['id'] = data.id
             returnDict.append(returnData)
