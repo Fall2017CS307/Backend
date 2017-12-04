@@ -378,7 +378,11 @@ class datasetHandler:
             session.add(batch)
             session.commit()
             batchCount+=1
-
+        
+        k = Key(bucket)
+        k.key = "e_"+randName+"/res.json"
+        arr = []
+        sent = k.set_contents_from_string(json.dumps(arr), cb=None, md5=None, reduced_redundancy=False)
         return apiDecorate(ret, 200, "Success")
 
     @staticmethod
@@ -437,12 +441,21 @@ class datasetHandler:
             return apiDecorate(ret, 400, "Invalid experiment id")
         batches = session.query(models.batch).filter(models.batch.experiment_id == experiment.resource_id).filter(models.batch.rating == None).all()
         finishedBatch = []
+
         for batch in batches:
             if(batch.isCompleted == False):
                 continue
+            botoConn = boto.connect_s3(datasetHandler.DREAM_key, datasetHandler.DREAM_secretKey, host="objects-us-west-1.dream.io")
+            bucket = botoConn.get_bucket(datasetHandler.DREAM_Bucket, validate=False)
             curBatch = {}
             curBatch['id'] = batch.id
-            curBatch['link'] = "There is a link"
+            link = "e_"+experiment.resource_id+"/"+str(batch.local_resource_id)+"_res.json"
+            itemk = Key(bucket)
+            itemk.key = link
+            print link
+            link = itemk.generate_url(3600, query_auth=True, force_http=True)
+            curBatch['link'] = link
+            print link
             finishedBatch.append(curBatch)
         ret['batches'] = finishedBatch
         return apiDecorate(ret, 200, "success")
@@ -493,6 +506,7 @@ class datasetHandler:
         if(curDataset.isMedia == False):
             return apiDecorate(ret,400,"Invalid submission route called")
         if(curBatch.isCompleted == True):
+            print "eee"
             return apiDecorate(ret,400,"Batch finished annotating")
         batchData = {}
         batchData['text'] = imageText
@@ -513,7 +527,6 @@ class datasetHandler:
         curBatch = session.query(models.batch).filter(models.batch.id == batch_id).first()
         if(curBatch.isCompleted == True):
             datasetHandler.makeBatchData(batch_id)
-        
         return apiDecorate(ret, 200, "Success")
         
     @staticmethod
@@ -557,6 +570,10 @@ class datasetHandler:
             curBatch.isCompleted = True
         curBatch.curAnnotation +=1
         session.commit()
+        session = dbConn().get_session(dbConn().get_engine())
+        curBatch = session.query(models.batch).filter(models.batch.id == batch_id).first()
+        if(curBatch.isCompleted == True):
+            datasetHandler.makeBatchData(batch_id)
         return apiDecorate(ret, 200, "Success")
 
 
@@ -573,16 +590,34 @@ class datasetHandler:
             curAnnotateCount = 0
             print(experiment.resource_id)
             batches = session.query(models.batch).filter(models.batch.experiment_id == experiment.resource_id).all()
+            
+            botoConn = boto.connect_s3(datasetHandler.DREAM_key, datasetHandler.DREAM_secretKey, host="objects-us-west-1.dream.io")
+            bucket = botoConn.get_bucket(datasetHandler.DREAM_Bucket, validate=False)
+            dataArr = []
             for batch in batches :
+                if(batch.isCompleted == True):
+                    fileName = "e_"+experiment.resource_id+"/"+str(batch.local_resource_id)+"_res.json"
+                    k = Key(bucket)
+                    k.key = fileName
+                    fileJson = k.get_contents_as_string()
+                    fileArr = json.loads(fileJson)
+                    dataArr.append(fileArr)
+                    
                 totalAnnotateCount += batch.totalAnnotation
                 curAnnotateCount += batch.curAnnotation
+            fileApp = "e_"+experiment.resource_id+"/"+"res.json"
+            k = Key(bucket)
+            k.key = fileApp
+            print "key "+k.key
+            sent = k.set_contents_from_string(json.dumps(dataArr), cb=None, md5=None, reduced_redundancy=False)
+            
             curExp = {}
             curExp['total'] = totalAnnotateCount
             curExp['completed'] = curAnnotateCount
             curExp['experiment_id'] = experiment.id
             curExp['price'] = experiment.price
             curExp['description'] = experiment.description
-            curExp['link'] = "There is a link"
+            curExp['link'] = k.generate_url(3600, query_auth=True, force_http=True)
             if(experiment.isPaused != 0):
                 curExp['status'] = "Paused"
             else:
@@ -758,5 +793,4 @@ class datasetHandler:
         k.key = fileApp+".json"
         print "key "+k.key
         sent = k.set_contents_from_string(json.dumps(dataArr), cb=None, md5=None, reduced_redundancy=False)
-        
         

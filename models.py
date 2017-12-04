@@ -101,7 +101,7 @@ class dataset(Base):
     __tablename__ = 'dataset'
 
     id = Column(Integer, primary_key=True)
-    '''title = Column(String, nullable=False)'''
+    title = Column(String(60), nullable=False)
     user_id = Column(Integer,ForeignKey("user.id"))
     resource_id = Column(String(60))
     isMedia = Column(BOOLEAN, default=0, nullable=False)
@@ -165,7 +165,7 @@ class batch(Base):
     totalAnnotation = Column(Integer, default=0, nullable=False)
     deadline = Column(DateTime, nullable = True)
     notifDeadline = Column(DateTime, nullable = True)
-    allocateTime = Column(Integer, nullable=True)    
+    allocateTime = Column(Integer, nullable=True)
 
     def __init__(self,experiment_id, local_resource_id, batchSize):
         self.experiment_id = experiment_id

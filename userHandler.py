@@ -184,7 +184,7 @@ class userHandler():
         returnDict = []
         for data in datasets:
             returnData = {}
-            returnData['title'] = "Some title"
+            returnData['title'] = data.title
             returnData['id'] = data.id
             returnData['resource_name'] = data.resource_id
             if(data.isPublic == True):
@@ -286,7 +286,7 @@ class userHandler():
         for data in datasets:
             returnData = {}
             #returnData['file_name'] = data.file_name
-            returnData['title'] = "Some title"
+            returnData['title'] = data.title
             returnData['resource_name'] = data.resource_id
             returnData['id'] = data.id
             returnDict.append(returnData)
@@ -311,6 +311,7 @@ class userHandler():
 
         #copyDataset = models.dataset(user.id, file_name=dataset.file_name, resource_id=dataset.resource_id)
         copyDataset = models.dataset(user.id, isMedia=dataset.isMedia, resource_id=dataset.resource_id)
+        copyDataset.title  = dataset.title
         session.add(copyDataset)
         session.commit()
         copyDataset.isPublic = True
@@ -327,4 +328,28 @@ class userHandler():
             
         ret['balance'] = user.balance
         return apiDecorate(ret,200,"success")
-         
+    
+    def transferBalance(self,user_id):
+        ret = {}
+        session = dbConn().get_session(dbConn().get_engine())
+        user = session.query(models.User).filter(models.User.id == user_id).first()
+        if user is None:
+            ret['errors'] = []
+            ret['errors'].append("Invalid User")
+            return apiDecorate(ret, 400, "Invalid User")
+        user.balance = 0
+        session.commit()
+        return apiDecorate(ret,200,"success")
+    
+    def getMoney(self,user_id, money):
+        ret = {}
+        session = dbConn().get_session(dbConn().get_engine())
+        user = session.query(models.User).filter(models.User.id == user_id).first()
+        if user is None:
+            ret['errors'] = []
+            ret['errors'].append("Invalid User")
+            return apiDecorate(ret, 400, "Invalid User")
+        user.balance += money
+        session.commit()
+        return apiDecorate(ret,200,"success")
+    

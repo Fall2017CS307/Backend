@@ -52,6 +52,9 @@ app.add_url_rule('/api/getExperimentDetails/<int:experiment_id>', '/api/getExper
 app.add_url_rule('/api/updateExperiment/<int:experiment_id>', '/api/updateExperiment/experiment_id', datasetHandler.updateExperiment, methods=['POST', 'GET'])
 
 app.add_url_rule('/api/userBalance/<int:user_id>','/app/userBalance/user_id', userHandler().getBalance)
+app.add_url_rule('/api/transferBalance/<int:user_id>','/app/transferBalance/user_id', userHandler().transferBalance)
+app.add_url_rule('/api/getMoney/<int:user_id>/<int:money>','/app/getMoney/user_id', userHandler().getMoney)
+
 app.add_url_rule('/api/notifyTime','/api/notifyTime', datasetHandler.notifyTime)
 
 app.add_url_rule('/api/toggleExperiment/<int:experiment_id>', '/api/toggleExperiment/experiment_id', datasetHandler.toggleExperiment, methods=['POST', 'GET'])

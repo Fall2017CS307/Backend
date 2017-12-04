@@ -124,6 +124,16 @@ class fileHandler():
     def uploadFile(user_id, datasetType):
 
         ret = {}
+        argArray = {}
+        if request.method == "GET":
+            argArray = request.args
+
+        elif request.method  == "POST":
+            if(len(request.form) > 0):
+                argArray = request.form
+            else:
+                print request.get_data()
+                argArray = json.loads(request.data)
         user = userHandler().getUser(user_id)
 
         if user is None:
@@ -190,7 +200,7 @@ class fileHandler():
             print sent
 
         data = models.dataset(user_id=user_id, isMedia=datasetType, resource_id=randName)
-
+        data.title = argArray.get("dataset_title") or "No Title Given"
         session = dbConn().get_session(dbConn().get_engine())
         session.add(data)
         session.commit()
