@@ -10,7 +10,7 @@ Flask-SQLAlchemy==2.3.0
 idna==2.6
 ipaddress==1.0.18
 itsdangerous==0.24
-Jinja2==2.9.6
+Jinja2==2.11.3
 jsonify==0.5
 MarkupSafe==1.0
 MySQL-python==1.2.5
