@@ -14,7 +14,7 @@ Jinja2==2.9.6
 jsonify==0.5
 MarkupSafe==1.0
 MySQL-python==1.2.5
-py==1.4.34
+py==1.10.0
 pycparser==2.18
 PyJWT==1.5.3
 pyOpenSSL==17.3.0
